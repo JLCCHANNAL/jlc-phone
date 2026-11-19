@@ -351,6 +351,7 @@ class Phone3DViewer {
     }
 
     this.addCameras(group, W, H, -D / 2, 0, 0);
+    this.addBackLogo(group, W, H, -D / 2);
     return group;
   }
 
@@ -404,6 +405,57 @@ class Phone3DViewer {
       m.position.set(X(x), Y(y), backZ - plateD - 0.005);
       group.add(m);
     });
+  }
+
+  // สีโลโก้หลังเครื่อง: โทนเดียวกับฝาหลังแต่สว่าง/เข้มกว่าเล็กน้อย เคลือบเงา (แบบโลโก้ขัดเงาบนกระจกฝ้า)
+  logoHex(hex) { return hexMix(hex, isLight(hex) ? "#3a3a40" : "#e8e8ee", isLight(hex) ? 0.4 : 0.38); }
+
+  // โลโก้แบรนด์ด้านหลังเครื่อง: ตำแหน่ง/ขนาดตามแบบเครื่องจริงของแต่ละแบรนด์
+  // (เฉพาะแบรนด์หลักที่มีไฟล์โลโก้ เช่น Redmi/POCO ไม่ใช้โลโก้ Xiaomi)
+  addBackLogo(parent, W, H, backZ, cx = 0, cy = 0) {
+    const T = this.T, p = this.phone;
+    if (!p.logoFile) return;
+    const img = new Image();
+    img.onload = () => {
+      if (this.disposed) return;
+      const S = 512, c = document.createElement("canvas");
+      c.width = c.height = S;
+      const g = c.getContext("2d");
+      g.drawImage(img, 0, 0, S, S);
+      g.globalCompositeOperation = "source-in";
+      g.fillStyle = "#fff"; g.fillRect(0, 0, S, S);
+      // ตัดขอบว่างออก ให้โลโก้เต็มแผ่น
+      const a = g.getImageData(0, 0, S, S).data;
+      let x0 = S, y0 = S, x1 = 0, y1 = 0;
+      for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) if (a[(y * S + x) * 4 + 3] > 8) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+      if (x1 <= x0 || y1 <= y0) return;
+      const cw = x1 - x0 + 1, ch = y1 - y0 + 1;
+      const crop = document.createElement("canvas");
+      crop.width = cw; crop.height = ch;
+      crop.getContext("2d").drawImage(c, x0, y0, cw, ch, 0, 0, cw, ch);
+      const tex = new T.CanvasTexture(crop);
+      tex.anisotropy = 8;
+      const aspect = cw / ch;
+      // ขนาดและตำแหน่ง (หน่วยเดียวกับตัวเครื่อง H = 2.0 ≈ 150 มม.)
+      let w, y;
+      const brand = p.brand;
+      if (brand === "Apple") { w = Math.min(0.2, 0.24 * aspect); y = 0.06; }   // โลโก้ Apple กลางเครื่อง
+      else if (brand === "Google") { w = 0.11; y = -0.5; }
+      else if (aspect > 2) { w = Math.min(0.4, W * 0.42); y = -H * 0.36; }
+      else { w = 0.13; y = -H * 0.36; }
+      const h = w / aspect;
+      const mat = new T.MeshPhysicalMaterial({
+        color: this.lin(this.logoHex(this.colorHex)), map: tex, transparent: true, metalness: 0.55, roughness: 0.16,
+        clearcoat: 1, clearcoatRoughness: 0.05, envMapIntensity: 1.1, depthWrite: false,
+      });
+      mat.map.encoding = T.LinearEncoding;
+      this.mats.logo = mat;
+      const m = new T.Mesh(new T.PlaneGeometry(w, h), mat);
+      m.rotation.y = Math.PI;
+      m.position.set(cx, cy + y, backZ - 0.0026);
+      parent.add(m);
+    };
+    img.src = `logos/${p.logoFile}.svg`;
   }
 
   screenMaterial(map) {
@@ -511,6 +563,7 @@ class Phone3DViewer {
         innerFace(right, 0, w - bz, 0, [0, r, r, 0]);
         face(right, 0.004, w - 0.004, -H / 2 + 0.004, H / 2 - 0.004, [0.01, R, R, 0.01], -d - 0.0012, true, this.mats.back);
         this.addCameras(right, w, H, -d, w / 2, 0);
+        this.addBackLogo(right, w, H, -d, w / 2, 0);
         btn(right, w + 0.006, 0.55, 0.3);
         this.powerBtn = btn(right, w + 0.006, 0.18, 0.16);
         // แผ่นซ้าย (หมุนรอบบานพับ): จอในครึ่งซ้าย + จอนอกด้านหลัง
@@ -529,6 +582,7 @@ class Phone3DViewer {
         slab(mid, -w / 2, w / 2, -H / 2, H / 2, [0.01, 0.01, 0.01, 0.01]);
         innerFace(mid, -w / 2, w / 2, 0, [0, 0, 0, 0]);
         face(mid, -w / 2 + 0.004, w / 2 - 0.004, -H / 2 + 0.004, H / 2 - 0.004, [0.01, 0.01, 0.01, 0.01], -d - 0.0012, true, this.mats.back);
+        this.addBackLogo(mid, w, H, -d, 0, 0);
 
         const rightPivot = new T.Group(); rightPivot.position.set(w / 2, 0, -d); rig.add(rightPivot);
         const right = new T.Group(); right.position.z = d; rightPivot.add(right);
@@ -566,6 +620,7 @@ class Phone3DViewer {
       face(bottom, -w / 2 + 0.002, w / 2 - 0.002, -Hh + 0.002, 0, [0.01, 0.01, R, R], 0.0012, false, blackGlass);
       face(bottom, -w / 2 + 0.004, w / 2 - 0.004, -Hh + 0.004, -0.004, [0.01, 0.01, R, R], -d - 0.0012, true, this.mats.back);
       btn(bottom, w / 2 + 0.006, -0.22, 0.2);
+      this.addBackLogo(bottom, w, Hh, -d, 0, -Hh / 2 + Hh * 0.36);   // Flip: โลโก้กลางแผ่นล่าง
       const top = new T.Group(); rig.add(top);
       slab(top, -w / 2, w / 2, 0, Hh, [R, R, 0.01, 0.01]);
       const it = face(top, -w / 2 + bz, w / 2 - bz, 0, Hh - bz, [r, r, 0, 0], 0.0022, false, innerMat, uvTall);
@@ -852,6 +907,7 @@ class Phone3DViewer {
           { ...pick(this.mats.plate), to: this.lin(hex) },
           { ...pick(this.mats.frame), to: this.lin(this.frameHex(hex)) },
           { ...pick(this.mats.ring), to: this.lin(this.frameHex(hex)) },
+          ...(this.mats.logo ? [{ ...pick(this.mats.logo), to: this.lin(this.logoHex(hex)) }] : []),
         ],
       };
       void T;

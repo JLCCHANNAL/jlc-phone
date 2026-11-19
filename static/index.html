@@ -155,7 +155,11 @@
         <h2>มือถือทุกรุ่น</h2>
         <p>รายชื่อทั้งหมด <span id="catalogTotal">–</span> รุ่น · มีข้อมูลสเปกแล้ว <span id="catalogSpecTotal">–</span> รุ่น</p>
       </div>
-      <input type="search" id="catalogSearch" class="search-input big" placeholder="ค้นหารุ่น เช่น Galaxy S25, iPhone 17, Reno">
+      <label class="search-box big">
+        <svg class="search-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" id="catalogSearch" class="search-input big" placeholder="ค้นหารุ่น เช่น Galaxy S25, iPhone 17, Reno" aria-label="ค้นหารุ่น">
+        <kbd class="search-box-kbd" aria-hidden="true">/</kbd>
+      </label>
       <p class="catalog-info" id="catalogInfo"></p>
       <div class="cat-list" id="catalogList"></div>
       <div class="row-actions"><button type="button" class="btn btn-ghost" id="catalogMore" hidden>โหลดเพิ่ม</button></div>

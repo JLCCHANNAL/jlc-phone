@@ -33,6 +33,14 @@ async function init() {
 
   $("#clearBrands").onclick = () => { state.brands.clear(); renderBrands(); };
   $("#catalogSearch").oninput = debounce(() => loadCatalog(true), 250);
+  // กด / เพื่อไปที่ช่องค้นหารุ่น
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "/" || /INPUT|TEXTAREA/.test(document.activeElement.tagName) || $("#detail").open) return;
+    e.preventDefault();
+    const box = $("#catalogSearch");
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    box.focus({ preventScroll: true });
+  });
   $("#catalogMore").onclick = () => loadCatalog(false);
   bindNavSearch();
   $("#catalogTotal").textContent = fmt(meta.totalModels);
@@ -111,11 +119,17 @@ function renderOthers(others) {
   const q = othersQuery.trim().toLowerCase();
   const list = others.filter((g) => !q || g.name.toLowerCase().includes(q) || g.members.some((m) => m.name.toLowerCase().includes(q)));
   panel.innerHTML = `
-    <input type="search" id="othersSearch" class="search-input" placeholder="ค้นหาแบรนด์ เช่น i-mobile, Wiko" value="${esc(othersQuery)}">
+    <label class="search-box">
+      <svg class="search-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" id="othersSearch" class="search-input" placeholder="ค้นหาแบรนด์ เช่น i-mobile, Wiko" value="${esc(othersQuery)}" aria-label="ค้นหาแบรนด์">
+    </label>
     <div class="chips left">
       ${list.map((g) => {
         const st = groupState(g);
-        return `<button type="button" class="chip ${st !== "none" ? "selected" : ""}" data-group="${esc(g.id)}">${esc(g.name)} <span class="chip-count">${fmt(g.count)}</span></button>`;
+        const logo = g.logo
+          ? `<span class="chip-logo ${g.wide ? "wide" : ""}" style="--logo:url('${LOGO_CDN}${esc(g.logo)}.svg')" aria-hidden="true"></span>`
+          : `<span class="chip-mono" aria-hidden="true">${esc(g.name.replace(/[^A-Za-z0-9ก-๙]/g, "").slice(0, 1).toUpperCase())}</span>`;
+        return `<button type="button" class="chip brand-chip ${st !== "none" ? "selected" : ""}" data-group="${esc(g.id)}">${logo}<span class="chip-name">${esc(g.name)}</span><span class="chip-count">${fmt(g.count)}</span></button>`;
       }).join("") || `<p class="hint">ไม่พบแบรนด์</p>`}
     </div>`;
   panel.querySelectorAll(".chip[data-group]").forEach((el) => (el.onclick = () => toggleGroup(el.dataset.group)));
@@ -472,6 +486,9 @@ function stop3D() {
 async function start3D(p) {
   stop3D();
   const box = $("#viewer3d");
+  // โลโก้หลังเครื่อง: ใช้เฉพาะรุ่นของแบรนด์หลักในกลุ่ม (เช่น Redmi/POCO ไม่ใช้โลโก้ Xiaomi)
+  const g = meta.groups.find((x) => x.members.some((m) => m.slug === p.brandSlug));
+  p.logoFile = g && g.logo && g.members[0].slug === p.brandSlug ? g.logo : null;
   const v = new Phone3DViewer(box, p);
   viewer = v;
   try {

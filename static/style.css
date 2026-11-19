@@ -274,6 +274,54 @@ a { color: var(--accent); text-decoration: none; }
 .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
 .search-input.big { font-size: 18px; padding: 16px 20px; border-radius: 14px; }
 
+/* ช่องค้นหาแบบพรีเมียม: แคปซูลกระจก มีไอคอน เงานุ่ม และขอบไล่สีตอนกำลังพิมพ์ */
+.search-box { position: relative; display: block; border-radius: 980px; isolation: isolate; }
+.search-box::before {
+  content: ""; position: absolute; inset: -1.5px; border-radius: inherit; z-index: -1;
+  background: linear-gradient(120deg, #2E8BFF, #6E5BFF 55%, #C252F2); opacity: 0; transition: opacity .25s;
+}
+.search-box:focus-within::before { opacity: 1; }
+.search-box .search-input {
+  border-radius: 980px; border: 1px solid var(--line); padding: 13px 20px 13px 48px; font-size: 15px;
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(0,0,0,.04), 0 10px 30px -18px rgba(20,20,60,.35);
+  transition: box-shadow .25s, border-color .25s;
+}
+.search-box .search-input:hover { border-color: color-mix(in srgb, var(--muted) 45%, var(--line)); }
+.search-box .search-input:focus { border-color: transparent; box-shadow: 0 0 0 5px var(--accent-soft), 0 16px 36px -18px rgba(70,60,200,.45); }
+.search-box .search-input::placeholder { color: var(--muted); opacity: .8; }
+.search-box .search-input::-webkit-search-cancel-button { cursor: pointer; }
+.search-box-icon {
+  position: absolute; left: 18px; top: 50%; width: 18px; height: 18px; transform: translateY(-50%);
+  color: var(--muted); pointer-events: none; transition: color .25s;
+}
+.search-box:focus-within .search-box-icon { color: var(--accent); }
+.search-box.big .search-input { padding: 18px 64px 18px 58px; font-size: 18px; }
+.search-box.big .search-box-icon { left: 22px; width: 22px; height: 22px; }
+.search-box-kbd {
+  position: absolute; right: 18px; top: 50%; transform: translateY(-50%); pointer-events: none;
+  min-width: 26px; height: 26px; display: grid; place-items: center; border-radius: 8px;
+  font: 600 13px/1 inherit; color: var(--muted); background: var(--bar-bg); border: 1px solid var(--line);
+  transition: opacity .2s;
+}
+.search-box:focus-within .search-box-kbd { opacity: 0; }
+@media (hover: none) { .search-box-kbd { display: none; } .search-box.big .search-input { padding-right: 20px; } }
+
+/* ชิปแบรนด์อื่นๆ พร้อมโลโก้ */
+.brand-chip { display: inline-flex; align-items: center; gap: 8px; }
+.chip-logo {
+  flex: none; width: 18px; height: 18px; background: currentColor;
+  -webkit-mask: var(--logo) center / contain no-repeat; mask: var(--logo) center / contain no-repeat;
+}
+.chip-logo.wide { width: 62px; height: 13px; }
+/* โลโก้ตัวอักษรยาวบอกชื่อแบรนด์อยู่แล้ว: ซ่อนชื่อซ้ำ */
+.brand-chip .chip-logo.wide + .chip-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.chip-mono {
+  flex: none; width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; color: var(--muted); background: var(--bar-bg);
+}
+.brand-chip.selected .chip-mono { color: var(--accent); background: var(--accent-soft); }
+
 /* รายชื่อทุกรุ่น */
 .catalog-info { color: var(--muted); font-size: 14px; margin: 14px 0 10px; }
 .cat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 8px; }
