@@ -8,19 +8,19 @@ const OS_W = 600, OS_H = 1300;
 // ---------- รูปแบบของแต่ละระบบปฏิบัติการ ----------
 // shape: รูปไอคอน | lock: แบบหน้าล็อก | search: ตำแหน่งช่องค้นหา | dockBg: พื้นหลังแถบแอปล่าง | mono: ไอคอนขาวดำ
 const OS_THEMES = {
-  ios:       { name: "iOS", shape: "squircle", r: 0.23, rows: 5, lock: "ios", dockBg: "glass", indicator: "search", hint: "ปัดขึ้นเพื่อเปิด", gesture: true },
-  oneui:     { name: "One UI", shape: "squircle", r: 0.32, rows: 5, lock: "oneui", indicator: "dots", hint: "ปัดหน้าจอเพื่อปลดล็อก", gesture: true },
-  pixel:     { name: "Android (Pixel)", shape: "circle", rows: 4, lock: "pixel", indicator: "none", search: "bottom", glance: true, tonal: true, hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  hyperos:   { name: "HyperOS", shape: "rounded", r: 0.27, rows: 5, lock: "left-thin", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  coloros:   { name: "ColorOS", shape: "rounded", r: 0.3, rows: 5, lock: "center", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  oxygenos:  { name: "OxygenOS", shape: "rounded", r: 0.3, rows: 5, lock: "center-bold", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  realmeui:  { name: "realme UI", shape: "rounded", r: 0.3, rows: 5, lock: "center", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  originos:  { name: "OriginOS / Funtouch OS", shape: "rounded", r: 0.24, rows: 5, lock: "left-bold", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  magicos:   { name: "MagicOS", shape: "rounded", r: 0.28, rows: 5, lock: "center", indicator: "dots", hint: "ปัดเพื่อปลดล็อก", gesture: true },
-  harmonyos: { name: "HarmonyOS", shape: "squircle", r: 0.28, rows: 5, lock: "harmony", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  nothingos: { name: "Nothing OS", shape: "circle", rows: 5, lock: "nothing", indicator: "dots", mono: true, hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  gaming:    { name: "ROG UI / REDMAGIC OS", shape: "rounded", r: 0.22, rows: 5, lock: "center-bold", indicator: "dots", dark: true, hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
-  android:   { name: "Android", shape: "circle", rows: 5, lock: "center", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", gesture: true },
+  ios:       { name: "iOS", shape: "squircle", r: 0.23, rows: 5, lock: "ios", dockBg: "glass", indicator: "search", hint: "ปัดขึ้นเพื่อเปิด", nav: "bar" },
+  oneui:     { name: "One UI", shape: "squircle", r: 0.32, rows: 5, lock: "oneui", indicator: "dots", hint: "ปัดหน้าจอเพื่อปลดล็อก", nav: "samsung" },
+  pixel:     { name: "Android (Pixel)", shape: "circle", rows: 4, lock: "pixel", indicator: "none", search: "bottom", glance: true, tonal: true, hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "gesture" },
+  hyperos:   { name: "HyperOS", shape: "rounded", r: 0.27, rows: 5, lock: "left-thin", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  coloros:   { name: "ColorOS", shape: "rounded", r: 0.3, rows: 5, lock: "center", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  oxygenos:  { name: "OxygenOS", shape: "rounded", r: 0.3, rows: 5, lock: "center-bold", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  realmeui:  { name: "realme UI", shape: "rounded", r: 0.3, rows: 5, lock: "center", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  originos:  { name: "OriginOS / Funtouch OS", shape: "rounded", r: 0.24, rows: 5, lock: "left-bold", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  magicos:   { name: "MagicOS", shape: "rounded", r: 0.28, rows: 5, lock: "center", indicator: "dots", hint: "ปัดเพื่อปลดล็อก", nav: "buttons" },
+  harmonyos: { name: "HarmonyOS", shape: "squircle", r: 0.28, rows: 5, lock: "harmony", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  nothingos: { name: "Nothing OS", shape: "circle", rows: 5, lock: "nothing", indicator: "dots", mono: true, hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  gaming:    { name: "ROG UI / REDMAGIC OS", shape: "rounded", r: 0.22, rows: 5, lock: "center-bold", indicator: "dots", dark: true, hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
+  android:   { name: "Android", shape: "circle", rows: 5, lock: "center", indicator: "dots", hint: "ปัดขึ้นเพื่อปลดล็อก", nav: "buttons" },
 };
 
 function detectOS(p) {
@@ -95,8 +95,10 @@ class PhoneOS {
     this.key = detectOS(phone);
     this.theme = OS_THEMES[this.key];
     this.accent = accentHex || "#5a6a8a";
+    this.W = OS_W; this.H = OS_H;   // ความสูงคงที่ ความกว้างปรับตามจอ (จอพับกางออก = จอกว้าง)
+    this.cols = 4;
     this.canvas = document.createElement("canvas");
-    this.canvas.width = OS_W; this.canvas.height = OS_H;
+    this.canvas.width = this.W; this.canvas.height = this.H;
     this.g = this.canvas.getContext("2d");
     this.state = "home";          // off | lock | home  (เปิดหน้ามาเจอหน้า Home)
     this.brightness = 1;
@@ -131,15 +133,31 @@ class PhoneOS {
 
   setAccent(hex) { this.accent = hex; this.wallpaper = null; this.dirty = true; }
 
+  // เปลี่ยนขนาดจอ (เช่น มือถือจอพับ กาง ↔ พับ): จัดหน้าใหม่ให้พอดีจอ ไอคอนขนาดเท่าเดิม แต่จำนวนคอลัมน์เพิ่มตามความกว้าง
+  setWidth(w) {
+    w = Math.round(w);
+    if (w === this.W) return;
+    this.W = w;
+    this.canvas.width = w;
+    this.cols = w > 800 ? Math.max(4, Math.round((w - 60) / 140)) : 4;
+    this.wallpaper = null;
+    this.dragX = 0;
+    this.anims = this.anims.filter((a) => a.prop !== "dragX");
+    this.dirty = true;
+  }
+
+  // ระยะเริ่มของแถบแอปด้านล่าง (จอกว้างจัดไว้กึ่งกลางขนาดเท่ามือถือ)
+  get dockX() { return Math.max(0, (this.W - OS_W) / 2); }
+
   pointerDown(u, v) {
     if (this.state === "off") return;
     this.anims = this.anims.filter((a) => a.prop === "brightness");
-    this.drag = { x0: u * OS_W, y0: (1 - v) * OS_H, t0: performance.now(), base: this.state === "lock" ? this.lockY : this.dragX };
+    this.drag = { x0: u * this.W, y0: (1 - v) * this.H, t0: performance.now(), base: this.state === "lock" ? this.lockY : this.dragX };
   }
 
   pointerMove(u, v) {
     if (!this.drag) return;
-    const x = u * OS_W, y = (1 - v) * OS_H;
+    const x = u * this.W, y = (1 - v) * this.H;
     if (this.state === "lock") this.lockY = Math.min(0, this.drag.base + (y - this.drag.y0));
     else {
       let dx = this.drag.base + (x - this.drag.x0);
@@ -155,15 +173,15 @@ class PhoneOS {
     const dt = performance.now() - this.drag.t0;
     if (this.state === "lock") {
       const fast = this.lockY < -60 && dt < 300;
-      if (this.lockY < -OS_H * 0.22 || fast) {
-        this.animate("lockY", this.lockY, -OS_H, 280, () => { this.state = "home"; this.lockY = 0; this.emit(); });
+      if (this.lockY < -this.H * 0.22 || fast) {
+        this.animate("lockY", this.lockY, -this.H, 280, () => { this.state = "home"; this.lockY = 0; this.emit(); });
       } else this.animate("lockY", this.lockY, 0, 220);
     } else {
       const flick = Math.abs(this.dragX) > 40 && dt < 300;
       let target = this.page;
-      if (this.dragX < -OS_W * 0.25 || (flick && this.dragX < 0)) target = Math.min(this.pages.length - 1, this.page + 1);
-      if (this.dragX > OS_W * 0.25 || (flick && this.dragX > 0)) target = Math.max(0, this.page - 1);
-      const from = this.dragX + (target - this.page) * OS_W;
+      if (this.dragX < -this.W * 0.25 || (flick && this.dragX < 0)) target = Math.min(this.pages.length - 1, this.page + 1);
+      if (this.dragX > this.W * 0.25 || (flick && this.dragX > 0)) target = Math.max(0, this.page - 1);
+      const from = this.dragX + (target - this.page) * this.W;
       this.page = target;
       this.dragX = from;
       this.animate("dragX", from, 0, 300);
@@ -202,19 +220,19 @@ class PhoneOS {
   draw() {
     const g = this.g;
     g.save();
-    g.clearRect(0, 0, OS_W, OS_H);
+    g.clearRect(0, 0, this.W, this.H);
     if (this.state === "off" && this.brightness <= 0.001) {
-      g.fillStyle = "#000"; g.fillRect(0, 0, OS_W, OS_H);
+      g.fillStyle = "#000"; g.fillRect(0, 0, this.W, this.H);
       g.restore();
       return;
     }
     if (this.state === "lock") {
       // หน้า Home อยู่ข้างใต้ เผยขึ้นมาตอนปัดหน้าล็อกขึ้น
-      const p = Math.min(1, -this.lockY / OS_H);
+      const p = Math.min(1, -this.lockY / this.H);
       if (p > 0) {
         g.save();
         const s = 0.92 + 0.08 * p;
-        g.translate(OS_W / 2, OS_H / 2); g.scale(s, s); g.translate(-OS_W / 2, -OS_H / 2);
+        g.translate(this.W / 2, this.H / 2); g.scale(s, s); g.translate(-this.W / 2, -this.H / 2);
         this.drawHome();
         g.restore();
       }
@@ -228,32 +246,32 @@ class PhoneOS {
     }
     this.drawStatusBar();
     this.drawCutout();
-    if (this.theme.gesture) this.drawHomeBar();
-    if (this.brightness < 1) { g.fillStyle = `rgba(0,0,0,${1 - this.brightness})`; g.fillRect(0, 0, OS_W, OS_H); }
+    this.drawNavBar();
+    if (this.brightness < 1) { g.fillStyle = `rgba(0,0,0,${1 - this.brightness})`; g.fillRect(0, 0, this.W, this.H); }
     g.restore();
   }
 
   drawWallpaper(dim) {
     if (!this.wallpaper) {
       const c = document.createElement("canvas");
-      c.width = OS_W; c.height = OS_H;
+      c.width = this.W; c.height = this.H;
       const g = c.getContext("2d");
       const a = this.accent;
       if (this.key === "ios") {
         // วอลเปเปอร์ภูเขาและทะเลสาบ (วาดเอง) โทนสีอิงสีตัวเครื่อง
-        const sky = g.createLinearGradient(0, 0, 0, OS_H * 0.55);
+        const sky = g.createLinearGradient(0, 0, 0, this.H * 0.55);
         sky.addColorStop(0, shade(a, -0.35)); sky.addColorStop(0.55, "#9fb6c8"); sky.addColorStop(1, "#f1d9b8");
-        g.fillStyle = sky; g.fillRect(0, 0, OS_W, OS_H * 0.55);
-        const sun = g.createRadialGradient(OS_W * 0.62, OS_H * 0.46, 5, OS_W * 0.62, OS_H * 0.46, 260);
+        g.fillStyle = sky; g.fillRect(0, 0, this.W, this.H * 0.55);
+        const sun = g.createRadialGradient(this.W * 0.62, this.H * 0.46, 5, this.W * 0.62, this.H * 0.46, 260);
         sun.addColorStop(0, "rgba(255,236,200,.85)"); sun.addColorStop(1, "rgba(255,236,200,0)");
-        g.fillStyle = sun; g.fillRect(0, 0, OS_W, OS_H * 0.55);
-        const horizon = OS_H * 0.55;
+        g.fillStyle = sun; g.fillRect(0, 0, this.W, this.H * 0.55);
+        const horizon = this.H * 0.55;
         const ridge = (pts, col) => {
           // สันเขาโค้งนุ่ม (ลากเส้นโค้งผ่านจุดกึ่งกลางของแต่ละคู่จุด)
-          const P = pts.map(([px, py]) => [px * OS_W, horizon - py * OS_H]);
+          const P = pts.map(([px, py]) => [px * this.W, horizon - py * this.H]);
           g.fillStyle = col; g.beginPath(); g.moveTo(0, horizon); g.lineTo(P[0][0], P[0][1]);
           for (let i = 1; i < P.length - 1; i++) g.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
-          g.lineTo(P[P.length - 1][0], P[P.length - 1][1]); g.lineTo(OS_W, horizon); g.closePath(); g.fill();
+          g.lineTo(P[P.length - 1][0], P[P.length - 1][1]); g.lineTo(this.W, horizon); g.closePath(); g.fill();
         };
         const far = [[0, .12], [.12, .2], [.22, .16], [.34, .27], [.46, .2], [.58, .31], [.7, .22], [.82, .26], [.92, .17], [1, .2]];
         const near = [[0, .08], [.1, .13], [.2, .07], [.3, .15], [.42, .09], [.55, .16], [.66, .1], [.78, .14], [.9, .06], [1, .1]];
@@ -263,44 +281,44 @@ class PhoneOS {
         g.save();
         g.translate(0, horizon * 2); g.scale(1, -1);
         g.globalAlpha = 0.55;
-        g.drawImage(c, 0, 0, OS_W, horizon, 0, 0, OS_W, horizon);
+        g.drawImage(c, 0, 0, this.W, horizon, 0, 0, this.W, horizon);
         g.restore();
-        const water = g.createLinearGradient(0, horizon, 0, OS_H);
+        const water = g.createLinearGradient(0, horizon, 0, this.H);
         water.addColorStop(0, "rgba(20,40,60,.25)"); water.addColorStop(1, "rgba(5,12,22,.85)");
-        g.fillStyle = water; g.fillRect(0, horizon, OS_W, OS_H - horizon);
-        g.fillStyle = "rgba(0,0,0,.12)"; g.fillRect(0, 0, OS_W, OS_H);
+        g.fillStyle = water; g.fillRect(0, horizon, this.W, this.H - horizon);
+        g.fillStyle = "rgba(0,0,0,.12)"; g.fillRect(0, 0, this.W, this.H);
       } else if (this.key === "nothingos") {
-        g.fillStyle = "#0b0b0b"; g.fillRect(0, 0, OS_W, OS_H);
+        g.fillStyle = "#0b0b0b"; g.fillRect(0, 0, this.W, this.H);
         g.fillStyle = "rgba(255,255,255,.08)";
-        for (let y = 20; y < OS_H; y += 26) for (let x = 20; x < OS_W; x += 26) { g.beginPath(); g.arc(x, y, 2.2, 0, 6.3); g.fill(); }
+        for (let y = 20; y < this.H; y += 26) for (let x = 20; x < this.W; x += 26) { g.beginPath(); g.arc(x, y, 2.2, 0, 6.3); g.fill(); }
       } else if (this.theme.dark) {
-        const bg = g.createLinearGradient(0, 0, OS_W, OS_H);
+        const bg = g.createLinearGradient(0, 0, this.W, this.H);
         bg.addColorStop(0, "#1a0508"); bg.addColorStop(1, "#050507");
-        g.fillStyle = bg; g.fillRect(0, 0, OS_W, OS_H);
+        g.fillStyle = bg; g.fillRect(0, 0, this.W, this.H);
         g.strokeStyle = "rgba(255,40,60,.35)"; g.lineWidth = 6;
-        g.beginPath(); g.moveTo(0, 820); g.lineTo(OS_W, 520); g.stroke();
+        g.beginPath(); g.moveTo(0, 820); g.lineTo(this.W, 520); g.stroke();
       } else {
-        const bg = g.createLinearGradient(0, 0, OS_W * 0.6, OS_H);
+        const bg = g.createLinearGradient(0, 0, this.W * 0.6, this.H);
         bg.addColorStop(0, shade(a, 0.45)); bg.addColorStop(0.45, shade(a, -0.1)); bg.addColorStop(1, shade(a, -0.65));
-        g.fillStyle = bg; g.fillRect(0, 0, OS_W, OS_H);
+        g.fillStyle = bg; g.fillRect(0, 0, this.W, this.H);
         // วงแสงนุ่มแบบวอลเปเปอร์ของระบบ
         const blobs = this.key === "pixel" ? [[120, 300, 380, 0.5], [520, 900, 420, 0.35]] : [[470, 260, 420, 0.45], [80, 1000, 460, 0.28], [300, 640, 260, 0.18]];
         blobs.forEach(([x, y, r, al]) => {
           const gl = g.createRadialGradient(x, y, 5, x, y, r);
           gl.addColorStop(0, `rgba(255,255,255,${al})`); gl.addColorStop(1, "rgba(255,255,255,0)");
-          g.fillStyle = gl; g.fillRect(0, 0, OS_W, OS_H);
+          g.fillStyle = gl; g.fillRect(0, 0, this.W, this.H);
         });
         // เครื่องสีอ่อน (ขาว/เงิน): ทำวอลเปเปอร์ให้เข้มขึ้น ตัวอักษรสีขาวจะได้อ่านง่าย
         if (isLight(a)) {
-          const dim = g.createLinearGradient(0, 0, 0, OS_H);
+          const dim = g.createLinearGradient(0, 0, 0, this.H);
           dim.addColorStop(0, "rgba(20,24,34,.38)"); dim.addColorStop(1, "rgba(10,12,18,.55)");
-          g.fillStyle = dim; g.fillRect(0, 0, OS_W, OS_H);
+          g.fillStyle = dim; g.fillRect(0, 0, this.W, this.H);
         }
       }
       this.wallpaper = c;
     }
     this.g.drawImage(this.wallpaper, 0, 0);
-    if (dim) { this.g.fillStyle = `rgba(0,0,0,${dim})`; this.g.fillRect(0, 0, OS_W, OS_H); }
+    if (dim) { this.g.fillStyle = `rgba(0,0,0,${dim})`; this.g.fillRect(0, 0, this.W, this.H); }
   }
 
   now() {
@@ -325,20 +343,20 @@ class PhoneOS {
     const t = this.theme;
     switch (t.lock) {
       case "ios":
-        this.text(dateFull, OS_W / 2, 215, 34, 600);
-        this.text(`${+hh}:${mm}`, OS_W / 2, 400, 196, 700);
+        this.text(dateFull, this.W / 2, 215, 34, 600);
+        this.text(`${+hh}:${mm}`, this.W / 2, 400, 196, 700);
         this.roundButton(110, 1155, "flashlight"); this.roundButton(490, 1155, "camera");
         break;
       case "oneui":
-        this.text(`${hh}:${mm}`, OS_W / 2, 380, 170, 600);
-        this.text(dateShort, OS_W / 2, 440, 34, 500);
+        this.text(`${hh}:${mm}`, this.W / 2, 380, 170, 600);
+        this.text(dateShort, this.W / 2, 440, 34, 500);
         this.glyph("phone", 70, 1165, 46); this.glyph("camera", 484, 1165, 46);
         break;
       case "pixel":
         this.text(`${dateShort} · 27°`, 56, 170, 32, 500, "left");
-        this.text(hh, OS_W / 2, 470, 260, 400);
-        this.text(mm, OS_W / 2, 720, 260, 400);
-        this.glyph("lock", OS_W / 2 - 20, 1080, 40);
+        this.text(hh, this.W / 2, 470, 260, 400);
+        this.text(mm, this.W / 2, 720, 260, 400);
+        this.glyph("lock", this.W / 2 - 20, 1080, 40);
         break;
       case "left-thin":
         this.text(`${hh}:${mm}`, 50, 400, 180, 200, "left");
@@ -351,25 +369,25 @@ class PhoneOS {
         this.glyph("camera", 488, 1165, 42);
         break;
       case "harmony":
-        this.text(`${hh}:${mm}`, OS_W / 2, 400, 200, 200);
-        this.text(dateFull, OS_W / 2, 460, 30, 400);
+        this.text(`${hh}:${mm}`, this.W / 2, 400, 200, 200);
+        this.text(dateFull, this.W / 2, 460, 30, 400);
         this.glyph("camera", 488, 1165, 42);
         break;
       case "nothing":
-        this.text(`${hh}:${mm}`, OS_W / 2, 420, 150, 800, "center", "#fff", "'Doto', monospace");
-        this.text(dateShort.toUpperCase(), OS_W / 2, 480, 30, 800, "center", "rgba(255,255,255,.75)", "'Doto', monospace");
+        this.text(`${hh}:${mm}`, this.W / 2, 420, 150, 800, "center", "#fff", "'Doto', monospace");
+        this.text(dateShort.toUpperCase(), this.W / 2, 480, 30, 800, "center", "rgba(255,255,255,.75)", "'Doto', monospace");
         break;
       case "center-bold":
-        this.text(`${hh}:${mm}`, OS_W / 2, 380, 170, 700);
-        this.text(dateFull, OS_W / 2, 440, 30, 500);
+        this.text(`${hh}:${mm}`, this.W / 2, 380, 170, 700);
+        this.text(dateFull, this.W / 2, 440, 30, 500);
         this.glyph("camera", 488, 1165, 42);
         break;
       default:
-        this.text(`${hh}:${mm}`, OS_W / 2, 380, 170, 500);
-        this.text(dateFull, OS_W / 2, 440, 30, 400);
+        this.text(`${hh}:${mm}`, this.W / 2, 380, 170, 500);
+        this.text(dateFull, this.W / 2, 440, 30, 400);
         this.glyph("camera", 488, 1165, 42);
     }
-    this.text(t.hint, OS_W / 2, 1225, 24, 500, "center", "rgba(255,255,255,.8)");
+    this.text(t.hint, this.W / 2, 1225, 24, 500, "center", "rgba(255,255,255,.8)");
   }
 
   roundButton(cx, cy, icon) {
@@ -396,8 +414,8 @@ class PhoneOS {
     }
     // หน้าแอปเรียงต่อกันในแนวนอน เลื่อนตามนิ้ว
     this.pages.forEach((apps, i) => {
-      const ox = (i - this.page) * OS_W + this.dragX;
-      if (ox <= -OS_W || ox >= OS_W) return;
+      const ox = (i - this.page) * this.W + this.dragX;
+      if (ox <= -this.W || ox >= this.W) return;
       g.save(); g.translate(ox, 0);
       this.drawGrid(apps, top, t.rows);
       g.restore();
@@ -406,12 +424,12 @@ class PhoneOS {
     const iy = 1018;
     if (t.indicator === "search") {
       g.fillStyle = "rgba(255,255,255,.22)";
-      this.roundRect(OS_W / 2 - 74, iy - 24, 148, 48, 24); g.fill();
-      this.glyph("search", OS_W / 2 - 52, iy - 14, 28);
-      this.text("ค้นหา", OS_W / 2 + 14, iy + 9, 24, 600);
+      this.roundRect(this.W / 2 - 74, iy - 24, 148, 48, 24); g.fill();
+      this.glyph("search", this.W / 2 - 52, iy - 14, 28);
+      this.text("ค้นหา", this.W / 2 + 14, iy + 9, 24, 600);
     } else if (t.indicator === "dots") {
-      const n = this.pages.length, gap = 22, x0 = OS_W / 2 - ((n - 1) * gap) / 2;
-      const cur = this.page - this.dragX / OS_W;
+      const n = this.pages.length, gap = 22, x0 = this.W / 2 - ((n - 1) * gap) / 2;
+      const cur = this.page - this.dragX / this.W;
       for (let i = 0; i < n; i++) {
         const on = 1 - Math.min(1, Math.abs(cur - i));
         g.fillStyle = `rgba(255,255,255,${0.4 + 0.6 * on})`;
@@ -420,31 +438,32 @@ class PhoneOS {
     }
     // แถบแอปด้านล่าง
     const dy = t.search === "bottom" ? 1060 : 1080;
+    const dx = this.dockX;
     if (t.dockBg === "glass") {
       g.fillStyle = "rgba(255,255,255,.24)";
-      this.roundRect(22, dy - 12, OS_W - 44, 150, 48); g.fill();
+      this.roundRect(dx + 22, dy - 12, OS_W - 44, 150, 48); g.fill();
     }
     const cw = (OS_W - 60) / 4;
-    this.dock.forEach((app, i) => this.drawIcon(app, 30 + cw * i + cw / 2, dy + 62, false));
+    this.dock.forEach((app, i) => this.drawIcon(app, dx + 30 + cw * i + cw / 2, dy + 62, false));
     if (t.search === "bottom") {
       g.fillStyle = "rgba(255,255,255,.88)";
-      this.roundRect(40, 1190, OS_W - 80, 70, 35); g.fill();
-      this.glyph("search", 66, 1208, 34, "#1c1c1e");
-      this.text("ค้นหา", 116, 1236, 26, 500, "left", "#3a3a3c");
-      this.glyph("mic", OS_W - 100, 1208, 34, "#1c1c1e");
+      this.roundRect(dx + 40, 1180, OS_W - 80, 64, 32); g.fill();
+      this.glyph("search", dx + 66, 1195, 34, "#1c1c1e");
+      this.text("ค้นหา", dx + 116, 1223, 26, 500, "left", "#3a3a3c");
+      this.glyph("mic", dx + OS_W - 100, 1195, 34, "#1c1c1e");
     }
   }
 
   drawGrid(apps, top, rows) {
-    const cw = (OS_W - 60) / 4, rh = (980 - top) / rows;
+    const n = this.cols, cw = (this.W - 60) / n, rh = (980 - top) / rows;
     const used = new Set();
     let slot = 0;
     apps.forEach((app) => {
       while (used.has(slot)) slot++;
-      const c = slot % 4, r = Math.floor(slot / 4);
+      const c = slot % n, r = Math.floor(slot / n);
       if (app[1].startsWith("widget")) {
         // วิดเจ็ตขนาด 2x2
-        [slot, slot + 1, slot + 4, slot + 5].forEach((s) => used.add(s));
+        [slot, slot + 1, slot + n, slot + n + 1].forEach((s) => used.add(s));
         this.drawWidget(app, 30 + cw * c, top + rh * r, cw * 2, rh * 2);
       } else {
         used.add(slot);
@@ -651,7 +670,7 @@ class PhoneOS {
     const time = ios ? `${+hh}:${mm}` : `${hh}:${mm}`;
     if (!(this.state === "lock" && ios)) this.text(time, ios ? 96 : 44, y, 28, 600, ios ? "center" : "left");
     // สัญญาณ, Wi-Fi, แบตเตอรี่
-    const rx = OS_W - (ios ? 64 : 44);
+    const rx = this.W - (ios ? 64 : 44);
     g.fillStyle = "#fff";
     this.roundRect(rx - 44, y - 21, 44, 22, 6); g.fill();
     g.fillStyle = "rgba(255,255,255,.5)"; g.fillRect(rx + 1, y - 14, 4, 8);
@@ -665,16 +684,43 @@ class PhoneOS {
     const g = this.g, p = this.phone;
     g.fillStyle = "#000";
     if (p.brand === "Apple") {
-      if (/1[34]$|1[34] (Plus|mini)|16e/.test(p.name)) { this.roundRect(168, -30, 264, 88, 30); g.fill(); }
-      else { this.roundRect(220, 26, 160, 50, 25); g.fill(); }
-    } else { g.beginPath(); g.arc(OS_W / 2, 50, 18, 0, Math.PI * 2); g.fill(); }
+      if (/1[34]$|1[34] (Plus|mini)|16e/.test(p.name)) { this.roundRect(this.W / 2 - 132, -30, 264, 88, 30); g.fill(); }
+      else { this.roundRect(this.W / 2 - 80, 26, 160, 50, 25); g.fill(); }
+    } else {
+      // จอกว้างของมือถือพับ: กล้องหน้าอยู่ฝั่งขวาบน
+      const x = this.W > 800 ? this.W * 0.75 : this.W / 2;
+      g.beginPath(); g.arc(x, 50, 18, 0, Math.PI * 2); g.fill();
+    }
   }
 
-  drawHomeBar() {
+  // แถบนำทางด้านล่างตามระบบจริง: iPhone = แถบโฮมยาว, Pixel = แถบท่าทางสั้น,
+  // Samsung = ปุ่ม ||| ▢ < , Android อื่นๆ = ปุ่ม ◁ ○ □
+  drawNavBar() {
     if (this.state === "off") return;
-    const g = this.g;
-    g.fillStyle = "rgba(255,255,255,.85)";
-    this.roundRect(OS_W / 2 - 90, OS_H - 26, 180, 9, 4.5); g.fill();
+    const g = this.g, W = this.W, H = this.H, nav = this.theme.nav || "buttons";
+    const fg = this.state === "home" || this.state === "lock" ? "rgba(255,255,255,.9)" : "#fff";
+    g.fillStyle = fg; g.strokeStyle = fg;
+    if (nav === "bar") { this.roundRect(W / 2 - 100, H - 24, 200, 10, 5); g.fill(); return; }
+    if (nav === "gesture") { this.roundRect(W / 2 - 64, H - 22, 128, 8, 4); g.fill(); return; }
+    const y = H - 40, gap = 168;
+    g.lineWidth = 4; g.lineCap = "round"; g.lineJoin = "round";
+    const back = (x, chevron) => {
+      g.beginPath();
+      if (chevron) { g.moveTo(x + 8, y - 15); g.lineTo(x - 8, y); g.lineTo(x + 8, y + 15); }
+      else { g.moveTo(x + 11, y - 15); g.lineTo(x - 13, y); g.lineTo(x + 11, y + 15); g.closePath(); }
+      g.stroke();
+    };
+    if (nav === "samsung") {
+      // |||  ▢  <
+      [-12, 0, 12].forEach((o) => { g.beginPath(); g.moveTo(W / 2 - gap + o, y - 13); g.lineTo(W / 2 - gap + o, y + 13); g.stroke(); });
+      this.roundRect(W / 2 - 17, y - 17, 34, 34, 12); g.stroke();
+      back(W / 2 + gap, true);
+    } else {
+      // ◁  ○  □
+      back(W / 2 - gap, false);
+      g.beginPath(); g.arc(W / 2, y, 17, 0, Math.PI * 2); g.stroke();
+      this.roundRect(W / 2 + gap - 15, y - 15, 30, 30, 4); g.stroke();
+    }
   }
 
   roundRect(x, y, w, h, r) {

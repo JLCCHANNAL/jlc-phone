@@ -490,11 +490,13 @@ class Phone3DViewer {
     if (type === "book" || type === "tri") {
       const n = type === "tri" ? 3 : 2;
       const totalW = n * w, X0 = -totalW / 2 + bz, Wt = totalW - 2 * bz, Y0 = -H / 2 + bz, Ht = H - 2 * bz;
-      // จอใหญ่ด้านใน: วาดหน้าจอระบบไว้กลางจอกว้าง + พื้นหลังเบลอจากวอลเปเปอร์
-      const inner = this.makeWideScreen(Wt / Ht);
-      const innerMat = this.screenMaterial(inner.tex);
+      // จอใหญ่ด้านใน: หน้าจอระบบกว้างเต็มจอ
+      // (จัดหน้าใหม่ตามความกว้างจริง ไอคอนเรียงหลายคอลัมน์แบบแท็บเล็ต พับแล้วกลับเป็นขนาดจอโทรศัพท์บนจอนอก)
+      this.wideW = (1300 * Wt) / Ht;
+      if (this.os) this.os.setWidth(this.wideW);
+      const innerMat = this.screenMaterial(osTex);
       const uvWide = (ox) => (x, y, fw, fh, cx, cy) => [(x + cx + ox - X0) / Wt, (y + cy - Y0) / Ht];
-      const toOSWide = (uv) => inner.toOS(uv);
+      const toOSWide = toOSDirect;
       const innerFace = (parent, x0, x1, ox, radii) => {
         const m = face(parent, x0, x1, -H / 2 + bz, H / 2 - bz, radii, 0.0022, false, innerMat, uvWide(ox));
         m.userData.toOS = toOSWide; this.innerScreens.push(m);
@@ -590,51 +592,35 @@ class Phone3DViewer {
     return root;
   }
 
-  // จอกว้าง (Fold / สามทบ): หน้าจอระบบตรงกลาง + พื้นหลังเบลอ อัปเดตทุกครั้งที่หน้าจอระบบเปลี่ยน
-  makeWideScreen(aspect) {
-    const T = this.T;
-    const c = document.createElement("canvas");
-    c.height = 1300; c.width = Math.round(1300 * aspect);
-    const small = document.createElement("canvas"); small.width = 8; small.height = 17;
-    const tex = new T.CanvasTexture(c); tex.encoding = T.sRGBEncoding; tex.anisotropy = 8;
-    const src = this.os ? this.os.canvas : null;
-    const off = (c.width - 600) / 2;
-    const draw = () => {
-      const g = c.getContext("2d");
-      if (!src) { g.fillStyle = "#111"; g.fillRect(0, 0, c.width, c.height); return; }
-      small.getContext("2d").drawImage(src, 0, 0, small.width, small.height);
-      g.imageSmoothingEnabled = true;
-      g.drawImage(small, 0, 0, c.width, c.height);
-      g.fillStyle = "rgba(0,0,0,.28)"; g.fillRect(0, 0, c.width, c.height);
-      g.drawImage(src, off, 0);
-      tex.needsUpdate = true;
-    };
-    draw();
-    (this.screenDraws = this.screenDraws || []).push(draw);
-    const toOS = (uv) => {
-      const x = (uv.x * c.width - off) / 600;
-      return x >= 0 && x <= 1 ? { x, y: uv.y } : null;
-    };
-    return { tex, toOS };
-  }
-
-  // จอนอกของ Flip: ตัดส่วนบนของหน้าจอระบบ (นาฬิกา/วันที่) มาแสดง
+  // จอนอกของ Flip: จอเล็ก จัดหน้าแบบจอนอกจริง = วอลเปเปอร์ + นาฬิกาใหญ่ + วันที่ + แบตเตอรี่ (ขนาดตัวอักษรพอดีจอ)
   makeCoverScreen(aspect) {
     const T = this.T;
     const c = document.createElement("canvas");
     c.width = 600; c.height = Math.round(600 / aspect);
     const tex = new T.CanvasTexture(c); tex.encoding = T.sRGBEncoding; tex.anisotropy = 8;
-    const src = this.os ? this.os.canvas : null, sy = 40;
+    const os = this.os;
+    const TH_D = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
+    const TH_M = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
     const draw = () => {
-      const g = c.getContext("2d");
-      if (!src) { g.fillStyle = "#111"; g.fillRect(0, 0, c.width, c.height); return; }
-      g.drawImage(src, 0, sy, 600, c.height, 0, 0, 600, c.height);
+      const g = c.getContext("2d"), W = c.width, H = c.height;
+      const wp = os && os.wallpaper;
+      if (wp) g.drawImage(wp, 0, (wp.height - (H * wp.width) / W) * 0.35, wp.width, (H * wp.width) / W, 0, 0, W, H);
+      else { g.fillStyle = this.colorHex || "#333"; g.fillRect(0, 0, W, H); }
+      g.fillStyle = "rgba(0,0,0,.25)"; g.fillRect(0, 0, W, H);
+      const d = new Date(), hh = String(d.getHours()).padStart(2, "0"), mm = String(d.getMinutes()).padStart(2, "0");
+      g.fillStyle = "#fff"; g.textAlign = "center"; g.textBaseline = "alphabetic";
+      g.font = `600 ${Math.round(H * 0.3)}px -apple-system, 'Segoe UI', sans-serif`;
+      g.fillText(`${hh}:${mm}`, W / 2, H * 0.62);
+      g.font = `500 ${Math.round(H * 0.075)}px 'Noto Sans Thai', 'Segoe UI', sans-serif`;
+      g.fillText(`${TH_D[d.getDay()]} ${d.getDate()} ${TH_M[d.getMonth()]}`, W / 2, H * 0.76);
+      // แบตเตอรี่มุมขวาบน
+      g.fillRect(W - 92, 30, 46, 22);
+      g.fillStyle = "rgba(255,255,255,.5)"; g.fillRect(W - 44, 37, 4, 8);
       tex.needsUpdate = true;
     };
     draw();
     (this.screenDraws = this.screenDraws || []).push(draw);
-    const toOS = (uv) => ({ x: uv.x, y: 1 - ((1 - uv.y) * c.height + sy) / 1300 });
-    return { tex, toOS };
+    return { tex, toOS: () => null };
   }
 
   // f = 0 กางออก, 1 พับสนิท
@@ -679,6 +665,8 @@ class Phone3DViewer {
   toggleFold() {
     if (!this.foldParts) return;
     this.foldTarget = this.foldTarget ? 0 : 1;
+    // เริ่มกาง: จอในกลับมาเป็นจอกว้าง
+    if (this.foldTarget === 0 && this.wideW && this.os) this.os.setWidth(this.wideW);
     this.foldT0 = performance.now();
     this.foldFrom = this.foldLin;
     if (this.onFold) this.onFold(this.foldTarget === 1);
@@ -690,6 +678,8 @@ class Phone3DViewer {
     const lin = clamp01(this.foldFrom + (dir * (now - this.foldT0)) / FOLD_MS);
     this.foldLin = dir > 0 ? Math.min(lin, this.foldTarget) : Math.max(lin, this.foldTarget);
     this.applyFold(easeInOut(this.foldLin));
+    // พับเสร็จ: หน้าจอระบบย่อกลับเป็นขนาดจอโทรศัพท์บนจอนอก
+    if (this.foldLin === 1 && this.wideW && this.os) this.os.setWidth(600);
   }
 
   // จอที่แตะได้ตอนนี้: กาง = จอใน, พับ = จอนอก, ระหว่างพับ = ไม่มี
