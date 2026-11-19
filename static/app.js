@@ -597,7 +597,10 @@ async function loadCatalog(reset) {
   else list.insertAdjacentHTML("beforeend", rows);
 
   const names = selectedBrandNames();
-  $("#catalogInfo").textContent = `${fmt(data.total)} รุ่น` + (names.length ? ` ใน ${names.slice(0, 3).join(", ")}${names.length > 3 ? " ฯลฯ" : ""}` : " จากทุกแบรนด์");
+  const scope = names.length ? `ใน ${names.slice(0, 3).join(", ")}${names.length > 3 ? " ฯลฯ" : ""}` : "จากทุกแบรนด์";
+  const q = $("#catalogSearch").value.trim();
+  $("#catalogInfo").innerHTML = `<span class="ci-count">${fmt(data.total)}</span><span>รุ่น</span><span class="ci-dot" aria-hidden="true"></span><span>${esc(scope)}</span>`
+    + (q ? `<span class="ci-dot" aria-hidden="true"></span><span>ค้นหา “${esc(q)}”</span>` : "");
   $("#catalogMore").hidden = catalog.offset >= catalog.total;
 
   list.querySelectorAll(".cat-row:not([data-bound])").forEach((el) => {

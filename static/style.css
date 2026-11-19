@@ -323,7 +323,16 @@ a { color: var(--accent); text-decoration: none; }
 .brand-chip.selected .chip-mono { color: var(--accent); background: var(--accent-soft); }
 
 /* รายชื่อทุกรุ่น */
-.catalog-info { color: var(--muted); font-size: 14px; margin: 14px 0 10px; }
+.catalog-info {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 6px 8px;
+  color: var(--muted); font-size: 14px; margin: 18px auto 22px; text-align: center;
+}
+.ci-count {
+  font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; letter-spacing: .01em;
+  color: var(--accent); background: var(--accent-soft); padding: 4px 11px; border-radius: 980px;
+}
+.ci-dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: .55; }
+#catalog .search-box { margin-top: 4px; }
 .cat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 8px; }
 .cat-row {
   display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left;
