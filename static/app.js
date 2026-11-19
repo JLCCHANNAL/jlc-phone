@@ -29,6 +29,7 @@ async function init() {
   $("#clearBrands").onclick = () => { state.brands.clear(); renderBrands(); };
   $("#catalogSearch").oninput = debounce(() => loadCatalog(true), 250);
   $("#catalogMore").onclick = () => loadCatalog(false);
+  bindNavSearch();
   $("#catalogTotal").textContent = fmt(meta.totalModels);
   $("#catalogSpecTotal").textContent = fmt(meta.totalWithSpecs);
   $("#findBtn").onclick = () => findPhones(true);
@@ -466,14 +467,13 @@ async function loadCatalog(reset) {
 
   list.querySelectorAll(".cat-row:not([data-bound])").forEach((el) => {
     el.dataset.bound = "1";
-    el.onclick = () => (el.dataset.phone ? openDetail(el.dataset.phone) : openNoSpec(el));
+    el.onclick = () => (el.dataset.phone ? openDetail(el.dataset.phone)
+      : openNoSpec(el.querySelector(".cat-name small").textContent, el.querySelector(".cat-name").lastChild.textContent));
   });
 }
 
 // รุ่นที่ยังไม่มีข้อมูลสเปก
-function openNoSpec(el) {
-  const brand = el.querySelector(".cat-name small").textContent;
-  const name = el.querySelector(".cat-name").lastChild.textContent;
+function openNoSpec(brand, name) {
   const q = encodeURIComponent(`${brand} ${name} specs`);
   $("#detailBody").innerHTML = `
     <button type="button" class="close" id="detailClose" aria-label="ปิด">✕</button>
@@ -486,6 +486,88 @@ function openNoSpec(el) {
   $("#detailClose").onclick = () => $("#detail").close();
   stop3D();
   $("#detail").showModal();
+}
+
+// ---------- ช่องค้นหารุ่นบนแถบเมนู (ค้นจากทุกแบรนด์ แสดงรายการแนะนำขณะพิมพ์) ----------
+function bindNavSearch() {
+  const input = $("#navSearch");
+  const box = $("#navSuggest");
+  let seq = 0, items = [], active = -1, total = 0;
+
+  const open = (on) => { box.hidden = !on; input.setAttribute("aria-expanded", String(on)); if (!on) active = -1; };
+  // ทำตัวหนาให้ส่วนที่ตรงกับคำค้น
+  const highlight = (text, q) => {
+    const i = text.toLowerCase().indexOf(q.toLowerCase());
+    return i < 0 || !q ? esc(text) : esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+  };
+
+  function render(q) {
+    if (!items.length) {
+      box.innerHTML = `<div class="sug-empty">ไม่พบรุ่นที่ตรงกับ "${esc(q)}"</div>`;
+      return;
+    }
+    box.innerHTML = items.map((i, n) => `
+      <button type="button" class="sug ${n === active ? "active" : ""}" role="option" data-n="${n}">
+        <span class="sug-name"><small>${esc(i.brandName)}</small>${highlight(i.name, q)}</span>
+        ${i.phoneId ? `<span class="tag ok">${i.priceEst ? "≈" : ""}฿${fmt(i.price)}</span>` : `<span class="tag muted">ยังไม่มีสเปก</span>`}
+      </button>`).join("") +
+      (total > items.length ? `<button type="button" class="sug sug-all" data-all="1">ดูทั้งหมด ${fmt(total)} รุ่น →</button>` : "");
+    box.querySelectorAll(".sug").forEach((b) => {
+      b.onmousedown = (e) => e.preventDefault();   // กันช่องค้นหาเสียโฟกัสก่อนคลิกทำงาน
+      b.onclick = () => (b.dataset.all ? showAll() : choose(items[+b.dataset.n]));
+    });
+  }
+
+  function choose(item) {
+    open(false);
+    input.blur();
+    if (item.phoneId) openDetail(item.phoneId);
+    else openNoSpec(item.brandName, item.name);
+  }
+
+  // กด Enter หรือ "ดูทั้งหมด" → ไปที่รายชื่อทุกรุ่นพร้อมคำค้นเดียวกัน
+  function showAll() {
+    open(false);
+    input.blur();
+    $("#catalogSearch").value = input.value.trim();
+    state.brands.clear();
+    renderBrands();
+    loadCatalog(true);
+    $("#catalog").scrollIntoView({ behavior: "smooth" });
+  }
+
+  input.addEventListener("input", debounce(async () => {
+    const q = input.value.trim();
+    if (!q) { open(false); return; }
+    const my = ++seq;
+    let data;
+    try {
+      data = await api.catalog(new URLSearchParams({ q, offset: 0, limit: 8 }));
+    } catch { return; }
+    if (my !== seq) return;   // มีคำค้นใหม่กว่าแล้ว
+    items = data.items; total = data.total; active = -1;
+    render(q);
+    open(true);
+  }, 150));
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { open(false); return; }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (active >= 0 && items[active]) choose(items[active]);
+      else if (input.value.trim()) showAll();
+      return;
+    }
+    if (box.hidden || !items.length) return;
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      active = (active + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+      render(input.value.trim());
+      box.querySelector(".sug.active")?.scrollIntoView({ block: "nearest" });
+    }
+  });
+  input.addEventListener("focus", () => { if (input.value.trim() && items.length) open(true); });
+  input.addEventListener("blur", () => setTimeout(() => open(false), 120));
 }
 
 // ---------- สลับโหมดกลางวัน / กลางคืน ----------

@@ -90,8 +90,34 @@ a { color: var(--accent); text-decoration: none; }
   max-width: 1000px; margin: 0 auto; padding: 0 16px;
   height: 48px; display: flex; align-items: center; justify-content: space-between;
 }
-.logo { color: var(--text); font-weight: 700; letter-spacing: -0.02em; }
+.logo { color: var(--text); font-weight: 700; letter-spacing: -0.02em; flex: none; white-space: nowrap; }
 .nav nav { display: flex; align-items: center; white-space: nowrap; }
+.nav-inner { gap: 16px; }
+
+/* ช่องค้นหารุ่นบนแถบเมนู */
+.nav-search { position: relative; flex: 1; max-width: 440px; margin: 0 auto; }
+.nav-search-icon { position: absolute; left: 12px; top: 50%; width: 16px; height: 16px; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.nav-search input {
+  width: 100%; height: 34px; padding: 0 14px 0 36px; border-radius: 980px; border: 1px solid transparent;
+  background: var(--bar-bg); color: var(--text); font: inherit; font-size: 14px;
+}
+.nav-search input::placeholder { color: var(--muted); }
+.nav-search input:focus { outline: none; border-color: var(--accent); background: var(--card); box-shadow: 0 0 0 4px var(--accent-soft); }
+.nav-suggest {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 30;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 6px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .25); max-height: min(70vh, 480px); overflow-y: auto;
+}
+.sug {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+  text-align: left; border: 0; background: none; border-radius: 10px; padding: 9px 10px; min-height: 44px;
+}
+.sug:hover, .sug.active { background: var(--accent-soft); }
+.sug-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.sug-name small { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+.sug-all { color: var(--accent); justify-content: center; font-size: 14px; border-top: 1px solid var(--line); border-radius: 0 0 10px 10px; margin-top: 4px; }
+.sug-empty { color: var(--muted); font-size: 14px; padding: 12px 10px; text-align: center; }
+.sug mark { background: none; color: var(--accent); font-weight: 700; }
 .nav nav a { color: var(--muted); font-size: 13px; margin-left: 20px; }
 .nav nav a:hover { color: var(--text); }
 
@@ -358,8 +384,14 @@ a { color: var(--accent); text-decoration: none; }
 footer { text-align: center; color: var(--muted); font-size: 12px; padding: 32px 16px 48px; border-top: 1px solid var(--line); }
 footer p { max-width: 640px; margin: 4px auto; }
 
-@media (max-width: 640px) {
+@media (max-width: 860px) {
   .nav nav a { display: none; }
+}
+@media (max-width: 640px) {
+  .nav-inner { gap: 10px; }
+  .nav-search input { font-size: 16px; height: 36px; }   /* 16px: กัน iPhone ซูมหน้าจออัตโนมัติตอนแตะช่องค้นหา */
+  .nav-suggest { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 54px); left: 8px; right: 8px; }
+  .theme-toggle { margin-left: 0; }
   .hero { padding: 64px 16px; }
   .step, .results { padding: 56px 16px; }
   .brand-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
