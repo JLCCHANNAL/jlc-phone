@@ -10,6 +10,7 @@ API:
 import datetime
 import gzip
 import json
+import math
 import os
 import re
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -43,7 +44,8 @@ for p in PHONES:
     p["specs"] = SPECS.get(p["id"], {})
 
 # ---------- รุ่นที่เพิ่มเป็นชุด (data/batches/*.json) คำนวณคะแนนจากสเปกอัตโนมัติ ----------
-CHIPS = load("chips.json")
+_chipdata = load("chips.json")
+CHIPS, CHIP_REF = _chipdata["chips"], _chipdata["_ref"]
 SPEC_FIELDS = ("screen", "panel", "hz", "ram", "storage", "mainCam", "frontCam", "chargeW", "os", "color", "image")
 
 
@@ -51,11 +53,26 @@ def clamp(x, lo=0, hi=100):
     return max(lo, min(hi, x))
 
 
+def chip_scores(chip):
+    """เบนช์มาร์ก -> คะแนน 0-100 แบบลอการิทึม: ชิปแรงสุด ≈ 100, แรงลดลงครึ่งหนึ่ง ≈ -24 (CPU) / -15 (GPU)
+    CPU = Geekbench 6 (single 40% + multi 60%), GPU = 3DMark Wild Life Extreme"""
+    sc, mc, wle = CHIPS[chip]
+    cpu_ratio = 0.4 * sc / CHIP_REF["sc"] + 0.6 * mc / CHIP_REF["mc"]
+    cpu = 100 + 34 * math.log(cpu_ratio)
+    gpu = 100 + 21.5 * math.log(wle / CHIP_REF["wle"])
+    return round(clamp(cpu, 5)), round(clamp(gpu, 5))
+
+
+def chip_bench(chip):
+    sc, mc, wle = CHIPS[chip]
+    return {"gb6": [sc, mc], "wle": wle}
+
+
 def auto_scores(r):
     """แปลงสเปกเป็นคะแนน 0-100: CPU/GPU จากตารางชิป, แบตจาก mAh, จอจากชนิด+รีเฟรชเรต, ชาร์จจากวัตต์"""
     if r["chip"] not in CHIPS:
         raise ValueError(f'ไม่รู้จักชิป "{r["chip"]}" ของ {r["name"]} — เพิ่มใน data/chips.json')
-    cpu, gpu = CHIPS[r["chip"]]
+    cpu, gpu = chip_scores(r["chip"])
     battery = 40 + (r["battery"] - 3000) / 4000 * 60 + (15 if r["brand"] == "Apple" else 0)  # iPhone ประหยัดแบตกว่า
     panel = r.get("panel", "")
     display = 62 if "LCD" in panel else 88 if "LTPO" in panel else 82
@@ -85,6 +102,9 @@ for fname in sorted(os.listdir(BATCH_DIR)) if os.path.isdir(BATCH_DIR) else []:
                 "battery": r["battery"], "weight": r["weight"], "updates": r["updates"],
                 "scores": auto_scores(r), "specs": {k: r[k] for k in SPEC_FIELDS if k in r}, "batch": fname,
             })
+
+for p in PHONES:
+    p["bench"] = chip_bench(p["chip"])
 
 PHONES_BY_ID = {p["id"]: p for p in PHONES}
 
