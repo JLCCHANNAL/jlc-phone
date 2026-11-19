@@ -88,6 +88,12 @@ for fname in sorted(os.listdir(BATCH_DIR)) if os.path.isdir(BATCH_DIR) else []:
 
 PHONES_BY_ID = {p["id"]: p for p in PHONES}
 
+# ---------- สีตัวเครื่องที่วางขาย (data/colors.json) ----------
+_colors = load("colors.json")
+for p in PHONES:
+    if p["id"] in _colors:
+        p["colors"] = [{"name": n, "hex": h} for n, h in _colors[p["id"]]]
+
 # ---------- ปีอัปเดตที่เหลือจริง = เดือนเปิดตัว + ปีที่ผู้ผลิตสัญญา − วันนี้ ----------
 LAUNCH = load("launch.json")
 _today = datetime.date.today()
