@@ -29,7 +29,7 @@ async function init() {
   renderPresets();
   renderCriteria();
   bindBudget();
-  togglePreset("balanced");
+  // ไม่เลือกอะไรไว้ล่วงหน้า: ถ้าผู้ใช้ไม่เลือกเลย ระบบจะใช้เกณฑ์ "ใช้งานทั่วไป" ให้เอง
 
   $("#clearBrands").onclick = () => { state.brands.clear(); renderBrands(); };
   $("#catalogSearch").oninput = debounce(() => loadCatalog(true), 250);
@@ -83,7 +83,7 @@ function renderBrands() {
     const sub = g.members.length > 1 ? g.members.map((m) => m.name).join(" · ") : `${fmt(g.count)} รุ่น`;
     return `
     <button type="button" class="brand-card ${st === "all" ? "selected" : st === "some" ? "partial" : ""}" data-group="${esc(g.id)}" aria-pressed="${st !== "none"}">
-      <span class="check">${st === "some" ? "–" : "✓"}</span>
+      <span class="check" aria-hidden="true"></span>
       <span class="brand-mark" style="${color}">${brandMark(g)}</span>
       <strong>${esc(g.name)}</strong>
       <small>${esc(sub)}</small>
@@ -166,7 +166,7 @@ function selectedBrandNames() {
 function renderPresets() {
   $("#presetGrid").innerHTML = meta.presets.map((p) => `
     <button type="button" class="preset-card ${state.presets.has(p.key) ? "selected" : ""}" data-preset="${p.key}" aria-pressed="${state.presets.has(p.key)}">
-      <span class="check">✓</span>
+      <span class="check" aria-hidden="true"></span>
       <strong>${esc(p.label)}</strong>
       <span>${esc(p.desc)}</span>
     </button>`).join("");
@@ -195,9 +195,9 @@ function renderCriteria() {
     const w = state.weights[c.key] || 0;
     return `
     <div class="crit ${w ? "selected" : ""}" data-key="${c.key}" role="checkbox" aria-checked="${!!w}" tabindex="0">
-      <span class="box">✓</span>
       <span class="txt"><strong>${esc(c.label)}</strong><small>${esc(c.desc)}</small></span>
       <button type="button" class="star ${w >= 2 ? "on" : ""}" title="สำคัญมาก" aria-label="ตั้ง ${esc(c.label)} เป็นสำคัญมาก">★</button>
+      <span class="mini-switch" aria-hidden="true"></span>
     </div>`;
   }).join("");
 
@@ -246,10 +246,6 @@ async function findPhones(scroll) {
   const max = $("#maxPrice").value;
   if ((min && Number(min) < 0) || (max && Number(max) < 0)) {
     err.textContent = "ราคาต้องไม่ติดลบ";
-    return;
-  }
-  if (!Object.keys(state.weights).length) {
-    err.textContent = "กรุณาเลือกสิ่งที่ให้ความสำคัญอย่างน้อย 1 อย่าง";
     return;
   }
 
@@ -337,6 +333,19 @@ const TH_MONTHS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.�
 const launchText = (l) => { if (!l) return ""; const [y, m] = l.split("-"); return `${TH_MONTHS[+m - 1]} ${y}`; };
 const updatesText = (p) => (p.updatesLeft > 0 ? `อัปเดตเหลือ ~${p.updatesLeft} ปี` : "หมดระยะอัปเดตแล้ว");
 
+// ไอคอนเส้น (Lucide) สำหรับหน้ารายละเอียด ใช้สีตามธีมผ่าน currentColor
+const icon = (name) => `<i class="ico" style="--icon:url('icons/${name}.svg')" aria-hidden="true"></i>`;
+const SCORE_ICONS = { cpu: "cpu", gpu: "gpu", camera: "camera", battery: "battery", display: "screen", charging: "bolt", updates: "refresh", weight: "feather" };
+const GROUP_ICONS = { "ภาพรวม": "info", "หน้าจอ": "screen", "ประสิทธิภาพ": "cpu", "กล้อง": "camera", "แบตเตอรี่": "battery" };
+
+// โลโก้แบรนด์ (จาก brands.json) สำหรับหัวหน้ารายละเอียด
+function brandLogoFor(slug) {
+  const g = meta.groups.find((x) => x.members.some((m) => m.slug === slug));
+  if (!g || !g.logo) return "";
+  const color = g.color ? `--lc:${g.color[0]};--dc:${g.color[1]}` : "";
+  return `<span class="detail-logo brand-mark" style="${color}"><span class="brand-logo ${g.wide ? "wide" : "icon"}" style="--logo:url('${LOGO_CDN}${esc(g.logo)}.svg')"></span></span>`;
+}
+
 const SPEC_GROUPS = [
   ["ภาพรวม", (p, s) => [["แบรนด์", p.brandName || p.brand], ["เปิดตัว", launchText(p.launch)], ["ระบบปฏิบัติการ", s.os], ["น้ำหนัก", `${p.weight} กรัม`],
     ["อัปเดตซอฟต์แวร์", `${p.updates} ปีจากวันเปิดตัว`], ["อัปเดตที่เหลือ", p.updatesLeft > 0 ? `ประมาณ ${p.updatesLeft} ปี` : "หมดแล้ว"]]],
@@ -360,15 +369,15 @@ async function openDetail(id) {
   const labels = Object.fromEntries(meta.criteria.map((c) => [c.key, c.label]));
 
   const scoreRows = Object.entries(p.allScores).map(([k, v]) => `
-    <div class="bar-row">
-      <span>${esc(labels[k])}</span>
+    <div class="bar-row with-icon">
+      <span>${icon(SCORE_ICONS[k] || "info")}${esc(labels[k])}</span>
       <div class="bar"><i style="width:${v}%"></i></div>
       <span>${v}</span>
     </div>`).join("");
 
   const groups = SPEC_GROUPS.map(([title, rows]) => {
     const items = rows(p, s).filter(([, v]) => v);
-    return `<section class="spec-group"><h4>${esc(title)}</h4><dl>${items.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></section>`;
+    return `<section class="spec-group"><h4>${icon(GROUP_ICONS[title] || "info")}${esc(title)}</h4><dl>${items.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></section>`;
   }).join("");
 
   $("#detailBody").innerHTML = `
@@ -376,17 +385,25 @@ async function openDetail(id) {
     <div class="detail-hero">
       <div class="detail-art">
         <div class="viewer3d" id="viewer3d"><div class="viewer-fallback">${phoneImage(p, "large")}</div></div>
+        <div class="screen-controls" id="screenControls" hidden>
+          <span class="os-chip" id="osChip"></span>
+          <button type="button" class="power-btn" id="powerBtn" aria-pressed="true">
+            <i class="ico" style="--icon:url('icons/app/power.svg')" aria-hidden="true"></i><span id="powerLabel">ปิดหน้าจอ</span>
+          </button>
+        </div>
+        <p class="screen-hint" id="screenHint" hidden></p>
         <p class="viewer-hint" id="viewerHint" hidden>${matchMedia("(pointer: coarse)").matches
           ? "3D · ลากนิ้วเพื่อหมุน · ถ่างสองนิ้วเพื่อซูม"
           : "3D · ลากเมาส์เพื่อหมุน · ลูกกลิ้งเพื่อซูม"}</p>
         <p class="viewer-credit" id="viewerCredit" hidden></p>
       </div>
       <div class="detail-info">
-        <div class="phone-brand">${esc(p.brand)}</div>
+        <div class="detail-brand">${brandLogoFor(p.brandSlug)}<span class="phone-brand">${esc(p.brandName || p.brand)}</span></div>
         <h2>${esc(p.name)}</h2>
         <p class="detail-sub">${esc(p.chip)} · จอ ${esc(s.screen || "-")} นิ้ว · กล้อง ${esc(s.mainCam || "-")} MP</p>
         <div class="detail-price">${p.priceEst ? "≈ " : ""}฿${fmt(p.price)}</div>
         ${p.priceEst ? `<p class="detail-sub">ราคาประมาณ (ยังไม่มีราคาทางการในไทย หรือเป็นราคาหลังปรับลด)</p>` : ""}
+        ${colorPicker(p)}
         ${r ? `
         <div class="stats">
           <div><b>${r.value}</b><span>ความคุ้มค่า</span></div>
@@ -403,7 +420,40 @@ async function openDetail(id) {
   $("#detailClose").onclick = () => dialog.close();
   dialog.showModal();
   dialog.scrollTop = 0;
+  bindColorPicker(p);
   start3D(p);
+}
+
+// ---------- เลือกสีตัวเครื่อง (วงกลมสี) ----------
+function colorPicker(p) {
+  const colors = p.colors || [];
+  if (!colors.length) return "";
+  const first = REAL_MODELS[p.id] && colors.find((c) => c.name === REAL_MODELS[p.id].baseColor) || colors[0];
+  return `
+    <div class="colors">
+      <p class="colors-label">สี <b id="colorName">${esc(first.name)}</b> <span class="colors-count">· มีให้เลือก ${colors.length} สี</span></p>
+      <div class="swatches" role="radiogroup" aria-label="เลือกสีตัวเครื่อง">
+        ${colors.map((c) => `
+          <button type="button" class="swatch ${c === first ? "selected" : ""}" role="radio" aria-checked="${c === first}"
+                  data-hex="${esc(c.hex)}" data-name="${esc(c.name)}" title="${esc(c.name)}" aria-label="${esc(c.name)}"
+                  style="--sw:${esc(c.hex)}"></button>`).join("")}
+      </div>
+    </div>`;
+}
+
+function bindColorPicker() {
+  document.querySelectorAll("#detailBody .swatch").forEach((b) => {
+    b.onclick = () => {
+      document.querySelectorAll("#detailBody .swatch").forEach((x) => {
+        x.classList.toggle("selected", x === b);
+        x.setAttribute("aria-checked", String(x === b));
+      });
+      const label = $("#colorName");
+      label.classList.remove("swap"); void label.offsetWidth; label.classList.add("swap");   // เล่นแอนิเมชันชื่อสีใหม่
+      label.textContent = b.dataset.name;
+      if (viewer) viewer.setColor(b.dataset.hex, b.dataset.name);
+    };
+  });
 }
 
 // ---------- โมเดล 3 มิติในหน้ารายละเอียด ----------
@@ -426,6 +476,26 @@ async function start3D(p) {
   if (viewer !== v) return;
   box.classList.add("ready");
   $("#viewerHint").hidden = false;
+  // หน้าจอจำลอง: ปุ่มเปิด/ปิดจอ + คำแนะนำตามสถานะจอ
+  if (v.os) {
+    const hints = {
+      home: "ปัดซ้าย-ขวาบนหน้าจอเพื่อดูหน้าแอป · ลากนอกจอเพื่อหมุนเครื่อง",
+      lock: "ปัดขึ้นบนหน้าจอเพื่อปลดล็อก",
+      off: "กดปุ่มเปิดหน้าจอ หรือกดปุ่มข้างตัวเครื่อง",
+    };
+    const sync = (s) => {
+      $("#powerLabel").textContent = s === "off" ? "เปิดหน้าจอ" : "ปิดหน้าจอ";
+      $("#powerBtn").setAttribute("aria-pressed", String(s !== "off"));
+      $("#powerBtn").classList.toggle("is-off", s === "off");
+      $("#screenHint").textContent = hints[s];
+    };
+    v.onOSState = sync;
+    sync(v.os.state);
+    $("#osChip").textContent = v.os.theme.name;
+    $("#screenControls").hidden = false;
+    $("#screenHint").hidden = false;
+    $("#powerBtn").onclick = () => v.togglePower();
+  }
   // โมเดลจริงจากผู้สร้างอื่น: ต้องให้เครดิตตามสัญญาอนุญาต CC BY
   const c = v.credit;
   const credit = $("#viewerCredit");
