@@ -1,5 +1,14 @@
 {
   "_note": "groups = แบรนด์ต้น และแบรนด์ย่อยในเครือ (members คือ brand slug ใน catalog.json) | featured = แสดงเป็นการ์ดโลโก้ | logo = ชื่อไอคอนใน Simple Icons | color = [โหมดกลางวัน, โหมดกลางคืน] | แบรนด์ที่ไม่อยู่ในกลุ่มใดจะเป็นกลุ่มเดี่ยวของตัวเองอัตโนมัติ",
+  "logos": {
+    "_note": "โลโก้ของแบรนด์อื่นๆ (Simple Icons, CC0) brand id -> [ไฟล์ใน static/logos, เป็นโลโก้แบบตัวอักษรยาวหรือไม่]",
+    "siemens": ["siemens", true], "tp-link": ["tplink", false],"leica": ["leica", false],
+    "panasonic": ["panasonic", true], "razer": ["razer", false], "hp": ["hp", false], "acer": ["acer", true],
+    "dell": ["dell", false], "amazon": ["amazon", false], "toshiba": ["toshiba", true], "nec": ["nec", true],
+    "msi": ["msi", false], "kyocera": ["kyocera", false], "hitachi": ["hitachi", true], "o2": ["o2", false],
+    "rakuten-mobile": ["rakuten", false], "mitsubishi": ["mitsubishi", false], "cat": ["caterpillar", false],
+    "pepsi": ["pepsi", false], "aston-martin": ["astonmartin", true]
+  },
   "groups": [
     {"id": "apple",    "name": "Apple",    "featured": true, "logo": "apple",    "members": ["apple"]},
     {"id": "samsung",  "name": "Samsung",  "featured": true, "logo": "samsung",  "wide": true, "color": ["#1428A0", "#5B7BFF"], "members": ["samsung", "anycall"]},
