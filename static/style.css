@@ -436,6 +436,8 @@ a { color: var(--accent); text-decoration: none; }
 .power-btn .ico { width: 15px; height: 15px; color: #34C759; }
 .power-btn.is-off .ico { color: var(--muted); }
 .power-btn:hover { border-color: var(--muted); }
+.fold-btn .ico { color: var(--accent); }
+.fold-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .screen-hint { color: var(--text); font-size: 12px; margin: 8px 0 0; text-align: center; max-width: 280px; }
 
 /* หัวรายละเอียด: โลโก้แบรนด์ */

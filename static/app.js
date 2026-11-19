@@ -393,6 +393,9 @@ async function openDetail(id) {
           <button type="button" class="power-btn" id="powerBtn" aria-pressed="true">
             <i class="ico" style="--icon:url('icons/app/power.svg')" aria-hidden="true"></i><span id="powerLabel">ปิดหน้าจอ</span>
           </button>
+          <button type="button" class="power-btn fold-btn" id="foldBtn" aria-pressed="false" hidden>
+            <i class="ico" style="--icon:url('icons/fold.svg')" aria-hidden="true"></i><span id="foldLabel">พับเครื่อง</span>
+          </button>
         </div>
         <p class="screen-hint" id="screenHint" hidden></p>
         <p class="viewer-hint" id="viewerHint" hidden>${matchMedia("(pointer: coarse)").matches
@@ -498,6 +501,17 @@ async function start3D(p) {
     $("#screenControls").hidden = false;
     $("#screenHint").hidden = false;
     $("#powerBtn").onclick = () => v.togglePower();
+  }
+  // มือถือจอพับ: ปุ่มพับ/กางเครื่อง (เล่นแอนิเมชันพับตามบานพับจริง)
+  if (v.isFoldable()) {
+    const fb = $("#foldBtn");
+    fb.hidden = false;
+    $("#screenControls").hidden = false;
+    v.onFold = (closed) => {
+      $("#foldLabel").textContent = closed ? "กางเครื่อง" : "พับเครื่อง";
+      fb.setAttribute("aria-pressed", String(closed));
+    };
+    fb.onclick = () => v.toggleFold();
   }
   // โมเดลจริงจากผู้สร้างอื่น: ต้องให้เครดิตตามสัญญาอนุญาต CC BY
   const c = v.credit;

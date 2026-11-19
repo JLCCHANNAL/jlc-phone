@@ -59,6 +59,37 @@ function roundedPlane(T, w, h, r) {
   return g;
 }
 
+// ---------- มือถือจอพับ ----------
+// book = พับข้างแบบหนังสือ (Fold), flip = พับบน-ล่าง (Flip/razr), tri = พับสามทบ (Mate XT)
+function foldType(p) {
+  const panel = (p.specs && p.specs.panel) || "";
+  if (!/พับ/.test(panel)) return null;
+  if (/สามทบ/.test(panel)) return "tri";
+  return /Flip|razr/i.test(p.name) ? "flip" : "book";
+}
+
+// สี่เหลี่ยมที่กำหนดความโค้งแต่ละมุมได้ [บนซ้าย, บนขวา, ล่างขวา, ล่างซ้าย] (ฝั่งบานพับใช้มุมเหลี่ยม)
+function cornerRectShape(T, w, h, radii) {
+  const s = new T.Shape(), x = -w / 2, y = -h / 2;
+  const [tl, tr, br, bl] = radii.map((r) => Math.max(0.0005, Math.min(r, w / 2, h / 2)));
+  s.moveTo(x + bl, y);
+  s.lineTo(x + w - br, y); s.quadraticCurveTo(x + w, y, x + w, y + br);
+  s.lineTo(x + w, y + h - tr); s.quadraticCurveTo(x + w, y + h, x + w - tr, y + h);
+  s.lineTo(x + tl, y + h); s.quadraticCurveTo(x, y + h, x, y + h - tl);
+  s.lineTo(x, y + bl); s.quadraticCurveTo(x, y, x + bl, y);
+  return s;
+}
+
+function uvPlane(T, w, h, radii, uvFn) {
+  const g = new T.ShapeGeometry(cornerRectShape(T, w, h, radii), 24);
+  const uv = g.attributes.uv, pos = g.attributes.position;
+  for (let i = 0; i < uv.count; i++) { const [u, v] = uvFn(pos.getX(i), pos.getY(i)); uv.setXY(i, u, v); }
+  return g;
+}
+
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+const FOLD_MS = 1300;
+
 function hexMix(a, b, t) {
   const pa = hexToRgb(a), pb = hexToRgb(b);
   return "#" + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("");
@@ -214,7 +245,7 @@ class Phone3DViewer {
       }
       if (this.disposed) return;
     }
-    if (!this.group) this.group = this.buildPhone();
+    if (!this.group) this.group = foldType(this.phone) ? this.buildFoldable() : this.buildPhone();
     else if (this.os) this.addScreenOverlay(this.group);   // โมเดลจริง: วางจอจำลองทับจอเดิม
     this.group.rotation.set(0.06, -0.35, 0);   // ท่าเริ่มต้น: ด้านหน้าเอียงเล็กน้อย
     scene.add(this.group);
@@ -319,12 +350,17 @@ class Phone3DViewer {
       });
     }
 
-    // ชุดกล้องด้านหลัง (พิกัดจาก cameraLayout มองจากด้านหลัง → กลับซ้ายขวา)
+    this.addCameras(group, W, H, -D / 2, 0, 0);
+    return group;
+  }
+
+  // ชุดกล้องด้านหลัง (พิกัดจาก cameraLayout มองจากด้านหลัง → กลับซ้ายขวา) วางบนพื้นที่กว้าง W สูง H กึ่งกลางที่ (cx, cy)
+  addCameras(group, W, H, backZ, cx, cy) {
+    const T = this.T, p = this.phone;
     const L = cameraLayout(p);
-    const X = (x) => -((x - 3) / 114 - 0.5) * W;
-    const Y = (y) => (0.5 - (y - 3) / 234) * H;
+    const X = (x) => cx - ((x - 3) / 114 - 0.5) * W;
+    const Y = (y) => cy + (0.5 - (y - 3) / 234) * H;
     const S = (v) => (v / 114) * W;
-    const backZ = -D / 2;
     const plateD = L.plates.length ? 0.026 : 0;
     L.plates.forEach((pl) => {
       let m;
@@ -368,7 +404,306 @@ class Phone3DViewer {
       m.position.set(X(x), Y(y), backZ - plateD - 0.005);
       group.add(m);
     });
-    return group;
+  }
+
+  screenMaterial(map) {
+    const m = new this.T.MeshPhysicalMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.95, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.02 });
+    (this.screenMats = this.screenMats || []).push(m);
+    return m;
+  }
+
+  // ---------- มือถือจอพับ: แผ่นตัวเครื่องต่อกันด้วยบานพับ พับ/กางได้จริง ----------
+  buildFoldable() {
+    const T = this.T, p = this.phone, lin = this.lin, hex = this.colorHex;
+    const type = this.foldType = foldType(p);
+    // ขนาดอิงเครื่องจริง: Fold7 กาง 143×158×4.2 มม. พับ 8.9 มม. | Flip7 กาง 75×167×6.5 มม. | Mate XT กาง 219×157×3.6 มม.
+    const H = 2.0;
+    const ratio = type === "flip" ? 0.45 : /Pixel Fold$/.test(p.name) ? 0.57 : /Pixel .*Pro Fold/.test(p.name) ? 0.5 : 0.465;
+    const w = H * ratio;
+    const mm = H / (type === "flip" ? 167 : 158);
+    const d = (type === "flip" ? 6.7 : type === "tri" ? 3.8 : 4.4) * mm;   // ความหนาแต่ละแผ่นตอนกาง
+    const B = 0.008;
+    const R = type === "flip" ? 0.12 : p.brand === "Samsung" ? 0.07 : 0.11;
+    const bz = 0.025;   // ขอบจอ
+    const premium = true;
+
+    this.mats = {
+      frame: new T.MeshPhysicalMaterial({ color: lin(this.frameHex(hex)), metalness: 0.9, roughness: 0.28, envMapIntensity: 1.2 }),
+      back: new T.MeshPhysicalMaterial({ color: lin(hex), metalness: 0, roughness: premium ? 0.5 : 0.2, clearcoat: 0.3, clearcoatRoughness: 0.4, envMapIntensity: 0.55 }),
+      plate: new T.MeshPhysicalMaterial({ color: lin(hex), metalness: 0.15, roughness: 0.18, clearcoat: 0.8, clearcoatRoughness: 0.05, envMapIntensity: 0.7 }),
+      ring: new T.MeshPhysicalMaterial({ color: lin(this.frameHex(hex)), metalness: 1, roughness: 0.18 }),
+    };
+    const blackGlass = new T.MeshPhysicalMaterial({ color: 0x030304, roughness: 0.04, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.02 });
+    const hingeMat = new T.MeshPhysicalMaterial({ color: lin(hexMix(this.frameHex(hex), "#3a3a3e", 0.35)), metalness: 0.85, roughness: 0.35 });
+
+    const root = new T.Group();      // ผู้ใช้หมุนกลุ่มนี้
+    const spin = new T.Group();      // หมุนโชว์ด้านจอนอกตอนพับ
+    const rig = new T.Group();       // เลื่อนให้จุดศูนย์กลางอยู่กลางเครื่องเสมอ
+    root.add(spin); spin.add(rig);
+    this.foldParts = { type, w, H, d, spin, rig };
+
+    // แผ่นตัวเครื่อง (z จาก -d ถึง 0 ด้านหน้าคือจอ)
+    const slab = (parent, x0, x1, y0, y1, radii) => {
+      const g = new T.ExtrudeGeometry(cornerRectShape(T, x1 - x0 - 2 * B, y1 - y0 - 2 * B, radii.map((r) => r - B)), {
+        depth: d - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelSegments: 6, curveSegments: 24,
+      });
+      g.translate((x0 + x1) / 2, (y0 + y1) / 2, -d + B);
+      parent.add(new T.Mesh(g, this.mats.frame));
+    };
+    // แผ่นหน้า/หลัง: back=true คือด้านหลัง (หมุนกลับด้าน → มุมซ้ายขวาสลับกัน)
+    const face = (parent, x0, x1, y0, y1, radii, z, back, mat, uvFn) => {
+      const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, fw = x1 - x0, fh = y1 - y0;
+      const rr = back ? [radii[1], radii[0], radii[3], radii[2]] : radii;
+      const g = uvFn ? uvPlane(T, fw, fh, rr, (x, y) => uvFn(x, y, fw, fh, cx, cy)) : new T.ShapeGeometry(cornerRectShape(T, fw, fh, rr), 24);
+      const m = new T.Mesh(g, mat);
+      m.position.set(cx, cy, z);
+      if (back) m.rotation.y = Math.PI;
+      parent.add(m);
+      return m;
+    };
+    // บานพับ: ครึ่งทรงกระบอกที่หมุนตามครึ่งมุมพับ → ตอนพับกลายเป็นสันโค้งด้านนอก
+    const hinge = (parent, pos, axis, side, len) => {
+      const g = new T.CylinderGeometry(d, d, len, 40, 1, false, side < 0 ? Math.PI / 2 : -Math.PI / 2, Math.PI);
+      const m = new T.Mesh(g, hingeMat);
+      const pivot = new T.Group();
+      pivot.position.set(...pos);
+      if (axis === "x") m.rotation.z = Math.PI / 2;
+      pivot.add(m); parent.add(pivot);
+      return pivot;
+    };
+    const lens = (parent, x, y, z, r) => {
+      const ring = new T.Mesh(new T.CylinderGeometry(r + 0.012, r + 0.014, 0.02, 48), this.mats.ring);
+      const glass = new T.Mesh(new T.CylinderGeometry(r, r, 0.022, 48), new T.MeshPhysicalMaterial({ color: 0x050508, metalness: 0.3, roughness: 0.02, clearcoat: 1 }));
+      const coat = new T.Mesh(new T.CylinderGeometry(r * 0.55, r * 0.55, 0.024, 32), new T.MeshPhysicalMaterial({ color: 0x0d1020, metalness: 0.5, roughness: 0.06, clearcoat: 1 }));
+      [ring, glass, coat].forEach((m, i) => { m.rotation.x = Math.PI / 2; m.position.set(x, y, z - 0.01 - i * 0.001); parent.add(m); });
+    };
+
+    const osTex = this.os ? this.osTexture() : screenTexture(T, p, hex);
+    const toOSDirect = (uv) => ({ x: uv.x, y: uv.y });
+    const btn = (parent, x, y, h) => {
+      const m = new T.Mesh(new T.BoxGeometry(0.02, h, d * 0.5), this.mats.frame);
+      m.position.set(x, y, -d / 2); parent.add(m);
+      return m;
+    };
+    this.innerScreens = []; this.coverScreens = [];
+
+    if (type === "book" || type === "tri") {
+      const n = type === "tri" ? 3 : 2;
+      const totalW = n * w, X0 = -totalW / 2 + bz, Wt = totalW - 2 * bz, Y0 = -H / 2 + bz, Ht = H - 2 * bz;
+      // จอใหญ่ด้านใน: วาดหน้าจอระบบไว้กลางจอกว้าง + พื้นหลังเบลอจากวอลเปเปอร์
+      const inner = this.makeWideScreen(Wt / Ht);
+      const innerMat = this.screenMaterial(inner.tex);
+      const uvWide = (ox) => (x, y, fw, fh, cx, cy) => [(x + cx + ox - X0) / Wt, (y + cy - Y0) / Ht];
+      const toOSWide = (uv) => inner.toOS(uv);
+      const innerFace = (parent, x0, x1, ox, radii) => {
+        const m = face(parent, x0, x1, -H / 2 + bz, H / 2 - bz, radii, 0.0022, false, innerMat, uvWide(ox));
+        m.userData.toOS = toOSWide; this.innerScreens.push(m);
+        face(parent, x0 - bz + 0.002, x1 + bz - 0.002, -H / 2 + 0.002, H / 2 - 0.002, radii, 0.0012, false, blackGlass);
+        return m;
+      };
+      const r = R - bz;
+      if (type === "book") {
+        // แผ่นขวา (ยึดอยู่กับที่): จอในครึ่งขวา + ฝาหลังสี + กล้อง + ปุ่ม
+        const right = new T.Group(); rig.add(right);
+        slab(right, 0, w, -H / 2, H / 2, [0.01, R, R, 0.01]);
+        innerFace(right, 0, w - bz, 0, [0, r, r, 0]);
+        face(right, 0.004, w - 0.004, -H / 2 + 0.004, H / 2 - 0.004, [0.01, R, R, 0.01], -d - 0.0012, true, this.mats.back);
+        this.addCameras(right, w, H, -d, w / 2, 0);
+        btn(right, w + 0.006, 0.55, 0.3);
+        this.powerBtn = btn(right, w + 0.006, 0.18, 0.16);
+        // แผ่นซ้าย (หมุนรอบบานพับ): จอในครึ่งซ้าย + จอนอกด้านหลัง
+        const left = new T.Group(); rig.add(left);
+        slab(left, -w, 0, -H / 2, H / 2, [R, 0.01, 0.01, R]);
+        innerFace(left, -w + bz, 0, 0, [r, 0, 0, r]);
+        face(left, -w + 0.004, -0.004, -H / 2 + 0.004, H / 2 - 0.004, [R, 0.01, 0.01, R], -d - 0.0012, true, blackGlass);
+        const cover = face(left, -w + bz, -bz, -H / 2 + bz * 1.6, H / 2 - bz * 1.6, [r, r, r, r], -d - 0.0022, true,
+          this.screenMaterial(osTex), (x, y, fw, fh) => [x / fw + 0.5, y / fh + 0.5]);
+        cover.userData.toOS = toOSDirect; this.coverScreens.push(cover);
+        this.foldParts.left = left;
+        this.foldParts.spineL = hinge(rig, [0, 0, 0], "y", -1, H - 0.03);
+      } else {
+        // สามทบ: แผ่นกลางยึดไว้, แผ่นขวาพับไปด้านหลัง (จอหันออก), แผ่นซ้ายพับมาทับด้านหน้า
+        const mid = new T.Group(); rig.add(mid);
+        slab(mid, -w / 2, w / 2, -H / 2, H / 2, [0.01, 0.01, 0.01, 0.01]);
+        innerFace(mid, -w / 2, w / 2, 0, [0, 0, 0, 0]);
+        face(mid, -w / 2 + 0.004, w / 2 - 0.004, -H / 2 + 0.004, H / 2 - 0.004, [0.01, 0.01, 0.01, 0.01], -d - 0.0012, true, this.mats.back);
+
+        const rightPivot = new T.Group(); rightPivot.position.set(w / 2, 0, -d); rig.add(rightPivot);
+        const right = new T.Group(); right.position.z = d; rightPivot.add(right);
+        slab(right, 0, w, -H / 2, H / 2, [0.01, R, R, 0.01]);
+        const innerR = innerFace(right, 0, w - bz, w / 2, [0, r, r, 0]);
+        // ตอนพับเสร็จ แผ่นขวากลายเป็นจอโทรศัพท์ปกติ: ใช้ภาพหน้าจอเต็มแทนส่วนของจอกว้าง
+        const cover = face(right, bz, w - bz, -H / 2 + bz, H / 2 - bz, [r, r, r, r], 0.0024, false,
+          this.screenMaterial(osTex), (x, y, fw, fh) => [x / fw + 0.5, y / fh + 0.5]);
+        cover.userData.toOS = toOSDirect; cover.visible = false; this.coverScreens.push(cover);
+        face(right, 0.004, w - 0.004, -H / 2 + 0.004, H / 2 - 0.004, [0.01, R, R, 0.01], -d - 0.0012, true, this.mats.back);
+        btn(right, w + 0.006, 0.55, 0.3);
+        this.powerBtn = btn(right, w + 0.006, 0.18, 0.16);
+
+        const leftPivot = new T.Group(); leftPivot.position.set(-w / 2, 0, 0); rig.add(leftPivot);
+        slab(leftPivot, -w, 0, -H / 2, H / 2, [R, 0.01, 0.01, R]);
+        innerFace(leftPivot, -w + bz, 0, -w / 2, [r, 0, 0, r]);
+        face(leftPivot, -w + 0.004, -0.004, -H / 2 + 0.004, H / 2 - 0.004, [R, 0.01, 0.01, R], -d - 0.0012, true, this.mats.back);
+        this.addCameras(leftPivot, w, H, -d, -w / 2, 0);
+
+        Object.assign(this.foldParts, {
+          left: leftPivot, right: rightPivot, innerR, coverR: cover,
+          spineL: hinge(rig, [-w / 2, 0, 0], "y", -1, H - 0.03),
+          spineR: hinge(rig, [w / 2, 0, -d], "y", 1, H - 0.03),
+        });
+      }
+    } else {
+      // Flip: แผ่นล่างยึดไว้ แผ่นบนพับลงมาทับ จอนอก + กล้องอยู่หลังแผ่นบน
+      const Hh = H / 2, X0 = -w / 2 + bz, Wt = w - 2 * bz, Y0 = -H / 2 + bz, Ht = H - 2 * bz;
+      const innerMat = this.screenMaterial(osTex);
+      const uvTall = (x, y, fw, fh, cx, cy) => [(x + cx - X0) / Wt, (y + cy - Y0) / Ht];
+      const r = R - bz;
+      const bottom = new T.Group(); rig.add(bottom);
+      slab(bottom, -w / 2, w / 2, -Hh, 0, [0.01, 0.01, R, R]);
+      const ib = face(bottom, -w / 2 + bz, w / 2 - bz, -Hh + bz, 0, [0, 0, r, r], 0.0022, false, innerMat, uvTall);
+      face(bottom, -w / 2 + 0.002, w / 2 - 0.002, -Hh + 0.002, 0, [0.01, 0.01, R, R], 0.0012, false, blackGlass);
+      face(bottom, -w / 2 + 0.004, w / 2 - 0.004, -Hh + 0.004, -0.004, [0.01, 0.01, R, R], -d - 0.0012, true, this.mats.back);
+      btn(bottom, w / 2 + 0.006, -0.22, 0.2);
+      const top = new T.Group(); rig.add(top);
+      slab(top, -w / 2, w / 2, 0, Hh, [R, R, 0.01, 0.01]);
+      const it = face(top, -w / 2 + bz, w / 2 - bz, 0, Hh - bz, [r, r, 0, 0], 0.0022, false, innerMat, uvTall);
+      face(top, -w / 2 + 0.002, w / 2 - 0.002, 0, Hh - 0.002, [R, R, 0.01, 0.01], 0.0012, false, blackGlass);
+      [ib, it].forEach((m) => { m.userData.toOS = toOSDirect; this.innerScreens.push(m); });
+      this.powerBtn = btn(top, w / 2 + 0.006, 0.2, 0.16);
+      btn(top, w / 2 + 0.006, 0.5, 0.26);
+      // ด้านหลังแผ่นบน: กระจกดำ + จอนอกเกือบเต็มแผ่น + กล้องคู่
+      face(top, -w / 2 + 0.004, w / 2 - 0.004, 0.004, Hh - 0.004, [R, R, 0.01, 0.01], -d - 0.0012, true, blackGlass);
+      const cw = w - 2 * bz, ch = Hh - 2 * bz;
+      const coverTex = this.makeCoverScreen(cw / ch);
+      const cover = face(top, -w / 2 + bz, w / 2 - bz, bz, Hh - bz, [r, r, 0.03, 0.03], -d - 0.0022, true,
+        this.screenMaterial(coverTex.tex), (x, y, fw, fh) => [x / fw + 0.5, y / fh + 0.5]);
+      cover.userData.toOS = coverTex.toOS; this.coverScreens.push(cover);
+      // กล้องหลังมุมบน (มองจากหลังอยู่ซ้ายบน = พิกัดหน้าเครื่องขวาบน)
+      lens(top, w / 2 - 0.17, Hh - 0.17, -d - 0.004, 0.065);
+      lens(top, w / 2 - 0.36, Hh - 0.17, -d - 0.004, 0.065);
+      Object.assign(this.foldParts, { top, spine: hinge(rig, [0, 0, 0], "x", -1, w - 0.03) });
+    }
+
+    this.screenMesh = this.innerScreens[0];
+    this.foldLin = 0; this.foldTarget = 0;   // เริ่มแบบกางออก โชว์จอใหญ่
+    this.applyFold(0);
+    return root;
+  }
+
+  // จอกว้าง (Fold / สามทบ): หน้าจอระบบตรงกลาง + พื้นหลังเบลอ อัปเดตทุกครั้งที่หน้าจอระบบเปลี่ยน
+  makeWideScreen(aspect) {
+    const T = this.T;
+    const c = document.createElement("canvas");
+    c.height = 1300; c.width = Math.round(1300 * aspect);
+    const small = document.createElement("canvas"); small.width = 8; small.height = 17;
+    const tex = new T.CanvasTexture(c); tex.encoding = T.sRGBEncoding; tex.anisotropy = 8;
+    const src = this.os ? this.os.canvas : null;
+    const off = (c.width - 600) / 2;
+    const draw = () => {
+      const g = c.getContext("2d");
+      if (!src) { g.fillStyle = "#111"; g.fillRect(0, 0, c.width, c.height); return; }
+      small.getContext("2d").drawImage(src, 0, 0, small.width, small.height);
+      g.imageSmoothingEnabled = true;
+      g.drawImage(small, 0, 0, c.width, c.height);
+      g.fillStyle = "rgba(0,0,0,.28)"; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(src, off, 0);
+      tex.needsUpdate = true;
+    };
+    draw();
+    (this.screenDraws = this.screenDraws || []).push(draw);
+    const toOS = (uv) => {
+      const x = (uv.x * c.width - off) / 600;
+      return x >= 0 && x <= 1 ? { x, y: uv.y } : null;
+    };
+    return { tex, toOS };
+  }
+
+  // จอนอกของ Flip: ตัดส่วนบนของหน้าจอระบบ (นาฬิกา/วันที่) มาแสดง
+  makeCoverScreen(aspect) {
+    const T = this.T;
+    const c = document.createElement("canvas");
+    c.width = 600; c.height = Math.round(600 / aspect);
+    const tex = new T.CanvasTexture(c); tex.encoding = T.sRGBEncoding; tex.anisotropy = 8;
+    const src = this.os ? this.os.canvas : null, sy = 40;
+    const draw = () => {
+      const g = c.getContext("2d");
+      if (!src) { g.fillStyle = "#111"; g.fillRect(0, 0, c.width, c.height); return; }
+      g.drawImage(src, 0, sy, 600, c.height, 0, 0, 600, c.height);
+      tex.needsUpdate = true;
+    };
+    draw();
+    (this.screenDraws = this.screenDraws || []).push(draw);
+    const toOS = (uv) => ({ x: uv.x, y: 1 - ((1 - uv.y) * c.height + sy) / 1300 });
+    return { tex, toOS };
+  }
+
+  // f = 0 กางออก, 1 พับสนิท
+  applyFold(f) {
+    const P = this.foldParts;
+    if (!P) return;
+    const { w, H, d } = P;
+    let minX, maxX, halfH = H / 2;
+    if (P.type === "book") {
+      P.left.rotation.y = Math.PI * f;
+      P.spineL.rotation.y = (Math.PI * f) / 2;
+      minX = -w + (w - d) * f; maxX = w;
+      P.rig.position.set(-(minX + maxX) / 2, 0, (d / 2) * (1 - f));
+    } else if (P.type === "tri") {
+      const f1 = easeInOut(clamp01(f * 2)), f2 = easeInOut(clamp01(f * 2 - 1));
+      P.right.rotation.y = Math.PI * f1; P.spineR.rotation.y = (Math.PI * f1) / 2;
+      P.left.rotation.y = Math.PI * f2; P.spineL.rotation.y = (Math.PI * f2) / 2;
+      minX = -1.5 * w + (w - d) * f2; maxX = 1.5 * w - (w - d) * f1;
+      P.rig.position.set(-(minX + maxX) / 2, 0, d / 2);
+      P.spin.rotation.y = Math.PI * f1;          // หมุนให้จอนอกหันมาหาผู้ชม
+      P.innerR.visible = f < 0.999; P.coverR.visible = f >= 0.999;
+    } else {
+      P.top.rotation.x = Math.PI * f;
+      P.spine.rotation.x = (Math.PI * f) / 2;
+      minX = -w / 2; maxX = w / 2;
+      halfH = H / 2 - (H / 4 - d / 2) * f;
+      P.rig.position.set(0, ((H / 2 - d) / 2) * f, (d / 2) * (1 - f));
+      P.spin.rotation.z = Math.PI * easeInOut(clamp01((f - 0.6) / 0.4));   // ช่วงท้ายค่อยกลับหัว ให้กล้องอยู่ด้านบนแบบที่ถือจริง
+    }
+    this.folded = f >= 0.999;
+    this.foldMoving = f > 0.001 && f < 0.999;
+    // ถอยกล้องให้เห็นทั้งเครื่อง (จอกาง 3 แผ่นกว้างมาก)
+    if (this.camera) {
+      const t = Math.tan((this.camera.fov * Math.PI) / 360);
+      const need = (Math.max(halfH, ((maxX - minX) / 2) / this.camera.aspect) * 1.4) / t;
+      this.camera.position.z = Math.max(5.6, need);
+    }
+  }
+
+  isFoldable() { return !!this.foldParts; }
+
+  toggleFold() {
+    if (!this.foldParts) return;
+    this.foldTarget = this.foldTarget ? 0 : 1;
+    this.foldT0 = performance.now();
+    this.foldFrom = this.foldLin;
+    if (this.onFold) this.onFold(this.foldTarget === 1);
+  }
+
+  stepFold(now) {
+    if (!this.foldParts || this.foldLin === this.foldTarget) return;
+    const dir = this.foldTarget > this.foldFrom ? 1 : -1;
+    const lin = clamp01(this.foldFrom + (dir * (now - this.foldT0)) / FOLD_MS);
+    this.foldLin = dir > 0 ? Math.min(lin, this.foldTarget) : Math.max(lin, this.foldTarget);
+    this.applyFold(easeInOut(this.foldLin));
+  }
+
+  // จอที่แตะได้ตอนนี้: กาง = จอใน, พับ = จอนอก, ระหว่างพับ = ไม่มี
+  activeScreens() {
+    if (!this.foldParts) return this.screenMesh ? [this.screenMesh] : [];
+    if (this.foldMoving) return [];
+    return (this.folded ? this.coverScreens : this.innerScreens).filter((m) => m.visible);
+  }
+
+  screenHit(e) {
+    const hit = this.hitTest(e, this.activeScreens());
+    if (!hit || !hit.uv) return null;
+    const map = hit.object.userData.toOS;
+    return map ? map(hit.uv) : hit.uv;
   }
 
   // ---------- หน้าจอจำลอง ----------
@@ -560,7 +895,7 @@ class Phone3DViewer {
     // นิ้วเดียว/เมาส์ = หมุน, สองนิ้ว = ถ่างเพื่อซูม, ลูกกลิ้ง = ซูม
     const pts = new Map();
     let pinchDist = 0;
-    const zoomTo = (z) => { this.camera.position.z = Math.max(3.8, Math.min(8, z)); };
+    const zoomTo = (z) => { this.camera.position.z = Math.max(3.8, Math.min(12, z)); };
     const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
 
     el.addEventListener("pointerdown", (e) => {
@@ -568,11 +903,11 @@ class Phone3DViewer {
         // กดปุ่มข้างบนโมเดล = เปิด/ปิดจอ
         if (this.hitTest(e, [this.powerBtn])) { this.os.togglePower(); return; }
         // แตะบนจอที่เปิดอยู่ = ปัดหน้าจอ (ไม่หมุนเครื่อง)
-        const hit = this.hitTest(e, [this.screenMesh]);
-        if (hit && hit.uv && this.os.state !== "off") {
+        const uv = this.screenHit(e);
+        if (uv && this.os.state !== "off") {
           this.screenPointer = e.pointerId;
           el.setPointerCapture(e.pointerId);
-          this.os.pointerDown(hit.uv.x, hit.uv.y);
+          this.os.pointerDown(uv.x, uv.y);
           el.style.cursor = "grabbing";
           return;
         }
@@ -586,13 +921,13 @@ class Phone3DViewer {
     });
     el.addEventListener("pointermove", (e) => {
       if (this.screenPointer === e.pointerId) {
-        const hit = this.hitTest(e, [this.screenMesh]);
-        if (hit && hit.uv) this.os.pointerMove(hit.uv.x, hit.uv.y);
+        const uv = this.screenHit(e);
+        if (uv) this.os.pointerMove(uv.x, uv.y);
         return;
       }
       // เอาเมาส์ชี้จอ/ปุ่มข้าง → เปลี่ยนเคอร์เซอร์ให้รู้ว่ากดได้
       if (this.os && pts.size === 0 && e.pointerType === "mouse") {
-        el.style.cursor = this.hitTest(e, [this.powerBtn]) ? "pointer" : this.hitTest(e, [this.screenMesh]) && this.os.state !== "off" ? "ew-resize" : "grab";
+        el.style.cursor = this.hitTest(e, [this.powerBtn]) ? "pointer" : this.screenHit(e) && this.os.state !== "off" ? "ew-resize" : "grab";
       }
       const prev = pts.get(e.pointerId);
       if (!prev) return;
@@ -636,6 +971,7 @@ class Phone3DViewer {
     this.renderer.setSize(width, height);
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+    if (this.foldParts) this.applyFold(easeInOut(this.foldLin));
   }
 
   loop(now) {
@@ -648,9 +984,14 @@ class Phone3DViewer {
     }
     const t = now || performance.now();
     this.stepTween(t);
+    this.stepFold(t);
     if (this.os && this.screenMesh) {
-      if (this.os.update(t)) this.screenTex.needsUpdate = true;
-      this.screenMesh.material.emissiveIntensity = 0.95 * this.os.brightness;   // จอดับ = กระจกดำสะท้อนแสง
+      if (this.os.update(t)) {
+        this.screenTex.needsUpdate = true;
+        (this.screenDraws || []).forEach((fn) => fn());
+      }
+      // จอดับ = กระจกดำสะท้อนแสง
+      (this.screenMats || [this.screenMesh.material]).forEach((m) => (m.emissiveIntensity = 0.95 * this.os.brightness));
     }
     this.renderer.render(this.scene, this.camera);
     this.raf = requestAnimationFrame(this.loop);
