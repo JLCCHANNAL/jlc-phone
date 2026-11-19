@@ -147,6 +147,11 @@ for slug in catalog_brands:
     if slug not in GROUP_OF:
         GROUPS.append({"id": slug, "name": brand_name(slug), "members": [slug]})
         GROUP_OF[slug] = slug
+# โลโก้ของแบรนด์อื่นๆ ที่หาได้จาก Simple Icons
+for g in GROUPS:
+    extra = BRANDS.get("logos", {}).get(g["id"])
+    if extra and not g.get("logo"):
+        g["logo"], g["wide"] = extra
 
 # จับคู่รุ่นที่มีสเปก (phones.json) กับรายชื่อใน catalog เพื่อรู้ว่าเป็นแบรนด์ย่อยไหน
 _catalog_keys = {}
