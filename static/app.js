@@ -5,7 +5,12 @@ const state = {
   weights: {},      // { cpu: 1, gpu: 2, ... }  1 = ปกติ, 2 = สำคัญมาก
   presets: new Set(), // เลือกรูปแบบการใช้งานได้หลายแบบ
   sort: "value",
+  category: null,     // หมวดที่กดจากหน้าแรก (เช่น gaming)
+  tag: null,          // ตัวกรองรูปทรง: foldable / bigscreen / small
+  onePerBrand: false, // แสดงแบรนด์ละ 1 รุ่น
+  shown: 20,          // จำนวนผลที่แสดงอยู่ (กด "แสดงเพิ่ม" ทีละ 20)
 };
+let lastData = null;
 let meta = null;
 
 const $ = (sel) => document.querySelector(sel);
@@ -32,14 +37,12 @@ async function init() {
   bindNavSearch();
   $("#catalogTotal").textContent = fmt(meta.totalModels);
   $("#catalogSpecTotal").textContent = fmt(meta.totalWithSpecs);
-  $("#findBtn").onclick = () => findPhones(true);
+  $("#findBtn").onclick = () => { clearCategory(); findPhones(true); };   // ค้นหาแบบกำหนดเอง = ไม่ใช้หมวด
   document.querySelectorAll("#sortGroup button").forEach((b) => {
-    b.onclick = () => {
-      state.sort = b.dataset.sort;
-      document.querySelectorAll("#sortGroup button").forEach((x) => x.classList.toggle("active", x === b));
-      findPhones(false);
-    };
+    b.onclick = () => { setSort(b.dataset.sort); findPhones(false); };
   });
+  renderCategories();
+  bindResultFilters();
 }
 
 // ---------- เลือกแบรนด์: แบรนด์ต้น → แบรนด์ย่อย ----------
@@ -258,7 +261,10 @@ async function findPhones(scroll) {
       maxPrice: max || null,
       weights: state.weights,
       sort: state.sort,
+      tag: state.tag,
+      onePerBrand: state.onePerBrand,
     });
+    state.shown = 20;
   } catch (e) {
     err.textContent = "เกิดข้อผิดพลาด: " + e.message;
     return;
@@ -268,11 +274,17 @@ async function findPhones(scroll) {
 }
 
 function renderResults(data) {
+  lastData = data;
   $("#results").hidden = false;
   const names = selectedBrandNames();
   const brandText = !names.length ? "ทุกแบรนด์" : names.length > 4 ? `${names.slice(0, 4).join(", ")} และอีก ${names.length - 4} แบรนด์` : names.join(", ");
   $("#resultSummary").textContent = `พบ ${data.count} รุ่นที่มีข้อมูลสเปก · ${brandText}` +
-    (data.noSpecCount ? ` · อีก ${fmt(data.noSpecCount)} รุ่นยังไม่มีสเปก (ดูได้ในรายชื่อทุกรุ่นด้านล่าง)` : "");
+    (data.noSpecCount && !state.category ? ` · อีก ${fmt(data.noSpecCount)} รุ่นยังไม่มีสเปก (ดูได้ในรายชื่อทุกรุ่นด้านล่าง)` : "");
+  renderActiveCategory();
+  syncPriceChips();
+  const remaining = data.results.length - state.shown;
+  $("#resultMore").hidden = remaining <= 0;
+  $("#resultMore").textContent = `แสดงเพิ่ม (อีก ${fmt(remaining)} รุ่น)`;
 
   if (!data.count) {
     $("#resultList").innerHTML = `<div class="empty">ไม่พบมือถือที่ตรงเงื่อนไข ลองขยายงบประมาณหรือเลือกแบรนด์เพิ่ม</div>`;
@@ -280,7 +292,7 @@ function renderResults(data) {
   }
   const labels = Object.fromEntries(meta.criteria.map((c) => [c.key, c.label]));
 
-  $("#resultList").innerHTML = data.results.map((p, i) => {
+  $("#resultList").innerHTML = data.results.slice(0, state.shown).map((p, i) => {
     const bars = Object.entries(p.breakdown).map(([k, v]) => `
       <div class="bar-row">
         <span>${esc(labels[k])}${data.weights[k] >= 2 ? " ★" : ""}</span>
@@ -486,6 +498,96 @@ function openNoSpec(brand, name) {
   $("#detailClose").onclick = () => $("#detail").close();
   stop3D();
   $("#detail").showModal();
+}
+
+// ---------- หมวดมือถือ (ปุ่มแบบไอคอนแอป iOS บนหน้าแรก) ----------
+// สีไอคอนจากชุดสีของ iOS [บน, ล่าง] / ไอคอนเส้นจาก Lucide (static/icons/)
+const CATEGORY_COLORS = {
+  gaming: ["#7D7AFF", "#5856D6"], camera: ["#8E8E93", "#48484A"], battery: ["#4CD964", "#248A3D"],
+  fastcharge: ["#FFD60A", "#FF9F0A"], everyday: ["#5AC8FA", "#0A84FF"], budget: ["#66E0DA", "#00A89F"],
+  student: ["#FFB340", "#FF8A00"], flagship: ["#D98CFF", "#AF52DE"], longterm: ["#6AC4DC", "#2A8FAA"],
+  foldable: ["#FF7A93", "#FF2D55"], bigscreen: ["#FF7B72", "#E5352B"], compact: ["#C9AE85", "#97784F"],
+};
+
+function categoryIcon(c) {
+  const [c1, c2] = CATEGORY_COLORS[c.key] || ["#8E8E93", "#636366"];
+  return `<span class="cat-icon" style="--c1:${c1};--c2:${c2}"><i style="--icon:url('icons/${esc(c.icon)}.svg')"></i></span>`;
+}
+
+function renderCategories() {
+  $("#categoryGrid").innerHTML = (meta.categories || []).map((c) => `
+    <button type="button" class="cat-tile ${state.category === c.key ? "selected" : ""}" data-cat="${esc(c.key)}" aria-pressed="${state.category === c.key}">
+      ${categoryIcon(c)}
+      <span class="cat-label">${esc(c.label)}</span>
+      <span class="cat-desc">${esc(c.desc)}</span>
+    </button>`).join("");
+  document.querySelectorAll(".cat-tile").forEach((el) => (el.onclick = () => applyCategory(el.dataset.cat)));
+}
+
+// กดหมวด: ตั้งเกณฑ์ ช่วงราคา ตัวกรอง และการเรียงลำดับของหมวดนั้น แล้วแสดงผลจากทุกแบรนด์
+function applyCategory(key) {
+  const c = meta.categories.find((x) => x.key === key);
+  if (!c) return;
+  state.category = key;
+  state.tag = c.tag || null;
+  state.weights = { ...c.weights };
+  state.presets.clear();
+  renderPresets();
+  renderCriteria();
+  $("#minPrice").value = c.minPrice || "";
+  $("#maxPrice").value = c.maxPrice || "";
+  document.querySelectorAll("#budgetChips .chip").forEach((x) => x.classList.remove("selected"));
+  state.brands.clear();
+  renderBrands();
+  setSort(c.sort || "value");
+  renderCategories();
+  findPhones(true);
+}
+
+function clearCategory() {
+  if (!state.category) return;
+  state.category = null;
+  state.tag = null;
+  renderCategories();
+}
+
+function setSort(sort) {
+  state.sort = sort;
+  document.querySelectorAll("#sortGroup button").forEach((x) => x.classList.toggle("active", x.dataset.sort === sort));
+}
+
+// ป้ายหมวดที่เลือกอยู่ เหนือผลลัพธ์ (กด ✕ เพื่อเลิกใช้หมวด)
+function renderActiveCategory() {
+  const box = $("#activeCategory");
+  const c = state.category && meta.categories.find((x) => x.key === state.category);
+  box.hidden = !c;
+  if (!c) return;
+  box.innerHTML = `${categoryIcon(c)}<span>หมวด <b>${esc(c.label)}</b></span>
+    <button type="button" class="active-cat-clear" aria-label="เลิกใช้หมวดนี้">✕</button>`;
+  box.querySelector(".active-cat-clear").onclick = () => {
+    clearCategory();
+    $("#minPrice").value = ""; $("#maxPrice").value = "";
+    findPhones(false);
+  };
+}
+
+// แถบกรองเหนือผลลัพธ์: ช่วงราคา + แบรนด์ละ 1 รุ่น + แสดงเพิ่ม
+function bindResultFilters() {
+  document.querySelectorAll("#priceChips .chip").forEach((chip) => {
+    chip.onclick = () => {
+      $("#minPrice").value = chip.dataset.min;
+      $("#maxPrice").value = chip.dataset.max;
+      document.querySelectorAll("#budgetChips .chip").forEach((x) => x.classList.toggle("selected", x.dataset.min === chip.dataset.min && x.dataset.max === chip.dataset.max));
+      findPhones(false);
+    };
+  });
+  $("#onePerBrand").onchange = (e) => { state.onePerBrand = e.target.checked; findPhones(false); };
+  $("#resultMore").onclick = () => { state.shown += 20; renderResults(lastData); };
+}
+
+function syncPriceChips() {
+  const min = $("#minPrice").value, max = $("#maxPrice").value;
+  document.querySelectorAll("#priceChips .chip").forEach((c) => c.classList.toggle("selected", c.dataset.min === min && c.dataset.max === max));
 }
 
 // ---------- ช่องค้นหารุ่นบนแถบเมนู (ค้นจากทุกแบรนด์ แสดงรายการแนะนำขณะพิมพ์) ----------

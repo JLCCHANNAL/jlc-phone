@@ -41,6 +41,10 @@
     <h1>มือถือที่ใช่<br><span class="grad">ในงบที่คุ้ม</span></h1>
     <p class="lead">เลือกแบรนด์ ตั้งงบ แล้วบอกว่าคุณใช้มือถือทำอะไร<br>เราจะคำนวณและจัดอันดับความคุ้มค่าให้</p>
     <a class="btn btn-lg" href="#step-brand">เริ่มค้นหา</a>
+    <div class="cat-section">
+      <p class="cat-eyebrow">หรือเลือกตามหมวด</p>
+      <div class="cat-grid" id="categoryGrid"></div>
+    </div>
   </section>
 
   <main>
@@ -112,7 +116,24 @@
           <button type="button" data-sort="price">ราคาถูกสุด</button>
         </div>
       </div>
+      <div class="result-filters">
+        <div class="active-cat" id="activeCategory" hidden></div>
+        <div class="chips left" id="priceChips" role="group" aria-label="กรองราคา">
+          <button type="button" class="chip" data-min="" data-max="">ทุกราคา</button>
+          <button type="button" class="chip" data-min="" data-max="8000">ไม่เกิน 8,000</button>
+          <button type="button" class="chip" data-min="8000" data-max="15000">8,000–15,000</button>
+          <button type="button" class="chip" data-min="15000" data-max="25000">15,000–25,000</button>
+          <button type="button" class="chip" data-min="25000" data-max="35000">25,000–35,000</button>
+          <button type="button" class="chip" data-min="35000" data-max="">35,000 ขึ้นไป</button>
+        </div>
+        <label class="switch" for="onePerBrand">
+          <input type="checkbox" id="onePerBrand">
+          <span class="track" aria-hidden="true"></span>
+          <span>แบรนด์ละ 1 รุ่น</span>
+        </label>
+      </div>
       <div class="result-list" id="resultList"></div>
+      <div class="row-actions"><button type="button" class="btn btn-ghost" id="resultMore" hidden>แสดงเพิ่ม</button></div>
     </section>
 
     <section class="step catalog" id="catalog">

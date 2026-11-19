@@ -6,7 +6,18 @@
 const LocalAPI = (() => {
   let D = null;
   const byId = {};
+  const groupOf = {};
   const norm = (s) => s.toLowerCase().replace(/\+/g, "plus").replace(/[^a-z0-9]/g, "");
+  // ตัวกรองรูปทรงเครื่อง (เหมือน match_tag ใน server.py)
+  function matchTag(p, tag) {
+    const s = p.specs || {};
+    const fold = (s.panel || "").includes("จอพับ");
+    const screen = s.screen || 0;
+    if (tag === "foldable") return fold;
+    if (tag === "bigscreen") return !fold && screen >= 6.7;
+    if (tag === "small") return !fold && screen > 0 && screen <= 6.4;
+    return true;
+  }
 
   async function init() {
     const res = await fetch("data.json");
@@ -22,6 +33,7 @@ const LocalAPI = (() => {
       } else p.updatesLeft = p.updates;
       byId[p.id] = p;
     });
+    D.meta.groups.forEach((g) => g.members.forEach((m) => (groupOf[m.slug] = g.id)));
     D.catalog.forEach((i) => {
       i.brandName = D.brandNames[i.b] || i.b;
       i.search = norm(i.brandName + i.n);
@@ -50,6 +62,7 @@ const LocalAPI = (() => {
     for (const p of D.phones) {
       if (brands.size && !brands.has(p.brandSlug)) continue;
       if (p.price < min || p.price > max) continue;
+      if (!matchTag(p, body.tag)) continue;
       const breakdown = {};
       for (const k of Object.keys(weights)) breakdown[k] = Math.round(criterionScore(p, k));
       const total = Object.values(weights).reduce((a, b) => a + b, 0);
@@ -73,8 +86,18 @@ const LocalAPI = (() => {
       const best = results.reduce((a, b) => (b.value > a.value ? b : a));
       results.forEach((r) => (r.bestValue = r.id === best.id));
     }
+    let list = results;
+    if (body.onePerBrand) {   // แบรนด์ละ 1 รุ่น (นับตามแบรนด์ต้น)
+      const seen = new Set();
+      list = results.filter((r) => {
+        const g = groupOf[r.brandSlug] || r.brandSlug;
+        if (seen.has(g)) return false;
+        seen.add(g);
+        return true;
+      });
+    }
     const noSpecCount = D.catalog.filter((i) => (!brands.size || brands.has(i.b)) && !i.p).length;
-    return { count: results.length, weights, results, noSpecCount };
+    return { count: list.length, weights, results: list, noSpecCount };
   }
 
   function catalog(params) {
