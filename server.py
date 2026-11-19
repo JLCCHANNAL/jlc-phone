@@ -200,6 +200,48 @@ VALUE_BASE = 35  # คะแนนระดับ "พอใช้ได้" ท
 MAX_UPDATE_YEARS = 7
 WEIGHT_BEST, WEIGHT_WORST = 160, 240  # กรัม
 
+# หมวดมือถือ (ปุ่มลัดบนหน้าแรก): น้ำหนักเกณฑ์ + ช่วงราคา + ตัวกรองรูปทรง (tag) + การเรียงลำดับเริ่มต้น
+CATEGORIES = [
+    {"key": "gaming", "label": "เกมมิ่ง", "desc": "ชิปแรง จอลื่น เล่นเกมหนักได้", "icon": "gamepad",
+     "weights": {"cpu": 2, "gpu": 2, "battery": 1, "display": 1}},
+    {"key": "camera", "label": "เน้นกล้อง", "desc": "ถ่ายรูปและวิดีโอสวย", "icon": "camera",
+     "weights": {"camera": 2, "display": 1, "battery": 1}},
+    {"key": "battery", "label": "แบตอึด", "desc": "ใช้ได้ทั้งวันไม่ต้องพกพาวเวอร์แบงก์", "icon": "battery",
+     "weights": {"battery": 2, "charging": 1}},
+    {"key": "fastcharge", "label": "ชาร์จไว", "desc": "ชาร์จแป๊บเดียวใช้ได้ยาว", "icon": "bolt",
+     "weights": {"charging": 2, "battery": 1}},
+    {"key": "everyday", "label": "ใช้งานทั่วไป", "desc": "สมดุลทุกด้าน คุ้มสำหรับคนส่วนใหญ่", "icon": "sliders",
+     "weights": {"cpu": 1, "gpu": 1, "camera": 1, "battery": 1, "display": 1}},
+    {"key": "budget", "label": "ราคาประหยัด", "desc": "ไม่เกิน 8,000 บาท", "icon": "tag",
+     "weights": {"cpu": 1, "camera": 1, "battery": 1, "display": 1}, "maxPrice": 8000},
+    {"key": "student", "label": "นักเรียน นักศึกษา", "desc": "ไม่เกิน 12,000 แบตดี เรียนออนไลน์ได้", "icon": "cap",
+     "weights": {"battery": 2, "cpu": 1, "camera": 1, "updates": 1}, "maxPrice": 12000},
+    {"key": "flagship", "label": "เรือธง", "desc": "รุ่นท็อป 30,000 บาทขึ้นไป", "icon": "crown",
+     "weights": {"cpu": 1, "gpu": 1, "camera": 2, "display": 1, "battery": 1}, "minPrice": 30000, "sort": "perf"},
+    {"key": "longterm", "label": "ใช้ยาวหลายปี", "desc": "อัปเดตนาน ชิปแรงพอใช้ไปอีกนาน", "icon": "clock",
+     "weights": {"updates": 2, "cpu": 2, "battery": 1}},
+    {"key": "foldable", "label": "จอพับ", "desc": "พับได้ จอใหญ่ในเครื่องเล็ก", "icon": "fold",
+     "weights": {"cpu": 1, "camera": 1, "battery": 1, "display": 1}, "tag": "foldable", "sort": "perf"},
+    {"key": "bigscreen", "label": "จอใหญ่ ดูหนัง", "desc": "จอ 6.7 นิ้วขึ้นไป แบตอึด", "icon": "film",
+     "weights": {"display": 2, "battery": 2, "cpu": 1}, "tag": "bigscreen"},
+    {"key": "compact", "label": "จอเล็ก พกง่าย", "desc": "จอไม่เกิน 6.4 นิ้ว ถือมือเดียวสบาย", "icon": "hand",
+     "weights": {"weight": 2, "cpu": 1, "camera": 1}, "tag": "small"},
+]
+
+
+def match_tag(phone, tag):
+    """ตัวกรองรูปทรงเครื่อง: จอพับ / จอใหญ่ / จอเล็ก"""
+    specs = phone.get("specs", {})
+    fold = "จอพับ" in specs.get("panel", "")
+    screen = specs.get("screen") or 0
+    if tag == "foldable":
+        return fold
+    if tag == "bigscreen":
+        return not fold and screen >= 6.7
+    if tag == "small":
+        return not fold and 0 < screen <= 6.4
+    return True
+
 
 def criterion_score(phone, key):
     """แปลงสเปกให้เป็นคะแนน 0-100"""
@@ -232,6 +274,8 @@ def recommend(body):
             continue
         if not (min_price <= p["price"] <= max_price):
             continue
+        if not match_tag(p, body.get("tag")):
+            continue
         breakdown = {k: round(criterion_score(p, k)) for k in weights}
         perf = sum(breakdown[k] * w for k, w in weights.items()) / sum(weights.values())
         # ความคุ้มค่า = (คะแนนรวม − 35)² × (คะแนนด้านที่ติด ★ − 35) ÷ ราคา
@@ -261,6 +305,17 @@ def recommend(body):
     best_value_id = max(results, key=lambda r: r["value"])["id"] if results else None
     for r in results:
         r["bestValue"] = r["id"] == best_value_id
+
+    # แบรนด์ละ 1 รุ่น: เก็บเฉพาะรุ่นอันดับดีที่สุดของแต่ละแบรนด์ต้น (เช่น Xiaomi รวม Redmi/POCO)
+    if body.get("onePerBrand"):
+        seen = set()
+        kept = []
+        for r in results:
+            g = GROUP_OF.get(r["brandSlug"], r["brandSlug"])
+            if g not in seen:
+                seen.add(g)
+                kept.append(r)
+        results = kept
 
     in_brands = [i for i in CATALOG if not brands or i["b"] in brands]
     no_spec = sum(1 for i in in_brands if "phoneId" not in i)
@@ -355,6 +410,7 @@ class Handler(SimpleHTTPRequestHandler):
                 "totalWithSpecs": len(PHONES),
                 "criteria": CRITERIA,
                 "presets": PRESETS,
+                "categories": CATEGORIES,
             })
         if self.try_send_gzip(path):
             return
