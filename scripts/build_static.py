@@ -24,7 +24,7 @@ STATIC = os.path.join(ROOT, "static")
 DIST = os.path.join(ROOT, "dist")
 
 PHONE_FIELDS = ("id", "brand", "brandSlug", "brandName", "name", "price", "priceEst", "chip", "battery",
-                "weight", "updates", "launch", "scores", "specs", "colors")
+                "weight", "updates", "launch", "scores", "specs", "colors", "bench")
 
 
 def build_data():
