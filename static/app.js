@@ -350,7 +350,10 @@ const SPEC_GROUPS = [
   ["ภาพรวม", (p, s) => [["แบรนด์", p.brandName || p.brand], ["เปิดตัว", launchText(p.launch)], ["ระบบปฏิบัติการ", s.os], ["น้ำหนัก", `${p.weight} กรัม`],
     ["อัปเดตซอฟต์แวร์", `${p.updates} ปีจากวันเปิดตัว`], ["อัปเดตที่เหลือ", p.updatesLeft > 0 ? `ประมาณ ${p.updatesLeft} ปี` : "หมดแล้ว"]]],
   ["หน้าจอ", (p, s) => [["ขนาด", s.screen && `${s.screen} นิ้ว`], ["ชนิดจอ", s.panel], ["รีเฟรชเรต", s.hz && `${s.hz} Hz`]]],
-  ["ประสิทธิภาพ", (p, s) => [["ชิปเซ็ต", p.chip], ["RAM", s.ram && `${s.ram} GB`], ["ความจุ", s.storage]]],
+  ["ประสิทธิภาพ", (p, s) => [["ชิปเซ็ต", p.chip], ["RAM", s.ram && `${s.ram} GB`], ["ความจุ", s.storage],
+    ["Geekbench 6", p.bench && `${fmt(p.bench.gb6[0])} / ${fmt(p.bench.gb6[1])} (single / multi)`],
+    ["3DMark Wild Life Extreme", p.bench && fmt(p.bench.wle)],
+    ["คะแนน CPU / GPU", p.scores && `${p.scores.cpu} / ${p.scores.gpu} จาก 100`]]],
   ["กล้อง", (p, s) => [["กล้องหลัก", s.mainCam && `${s.mainCam} MP`], ["กล้องหน้า", s.frontCam && `${s.frontCam} MP`]]],
   ["แบตเตอรี่", (p, s) => [["ความจุ", `${fmt(p.battery)} mAh`], ["ชาร์จเร็ว", s.chargeW && `${s.chargeW} W`]]],
 ];
@@ -634,11 +637,26 @@ function renderActiveCategory() {
   if (!c) return;
   box.innerHTML = `${categoryIcon(c)}<span>หมวด <b>${esc(c.label)}</b></span>
     <button type="button" class="active-cat-clear" aria-label="เลิกใช้หมวดนี้">✕</button>`;
-  box.querySelector(".active-cat-clear").onclick = () => {
-    clearCategory();
-    $("#minPrice").value = ""; $("#maxPrice").value = "";
-    findPhones(false);
-  };
+  box.querySelector(".active-cat-clear").onclick = resetCategorySearch;
+}
+
+// กด ✕ ที่ป้ายหมวด: ล้างหมวด เกณฑ์ ช่วงราคา ตัวกรอง และซ่อนผลลัพธ์ กลับไปเริ่มเลือกใหม่
+function resetCategorySearch() {
+  clearCategory();
+  state.weights = {};
+  state.presets.clear();
+  renderPresets();
+  renderCriteria();
+  $("#minPrice").value = ""; $("#maxPrice").value = "";
+  document.querySelectorAll("#budgetChips .chip, #priceChips .chip").forEach((x) => x.classList.remove("selected"));
+  setSort("value");
+  state.onePerBrand = false;
+  $("#onePerBrand").checked = false;
+  $("#activeCategory").hidden = true;
+  $("#resultList").innerHTML = "";
+  $("#resultMore").hidden = true;
+  $("#results").hidden = true;
+  $("#top").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // แถบกรองเหนือผลลัพธ์: ช่วงราคา + แบรนด์ละ 1 รุ่น + แสดงเพิ่ม
