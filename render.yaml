@@ -1,0 +1,12 @@
+# ตั้งค่าสำหรับ Render (https://render.com) — Render อ่านไฟล์นี้อัตโนมัติเมื่อสร้างแบบ Blueprint
+services:
+  - type: web
+    name: jlc-phone
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /api/meta
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"

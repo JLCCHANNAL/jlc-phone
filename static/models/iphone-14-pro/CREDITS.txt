@@ -1,0 +1,4 @@
+"iPhone 14 Pro" by mister dude (https://sketchfab.com/misterdude)
+Source: https://sketchfab.com/3d-models/iphone-14-pro-5cb0778041a34f09b409a38c687bb1d4
+License: Creative Commons Attribution 4.0 (CC BY 4.0) — https://creativecommons.org/licenses/by/4.0/
+Changes: normal map downscaled from 4096 to 2048 px; model re-centred and scaled in the JLC Phone 3D viewer.

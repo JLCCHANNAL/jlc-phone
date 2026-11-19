@@ -1,0 +1,58 @@
+{
+  "_note": "สเปกโดยประมาณ ควรตรวจสอบกับเว็บผู้ผลิตก่อนใช้งานจริง | image: ใส่ path รูปใน static/images/ ได้ ถ้าไม่ใส่จะวาดรูปเครื่องให้อัตโนมัติ | color: สีตัวเครื่องที่ใช้วาด",
+  "iphone-15":         {"screen": 6.1,  "panel": "Super Retina XDR OLED", "hz": 60,  "ram": "6",      "storage": "128 / 256 / 512 GB",        "mainCam": 48,  "frontCam": 12, "chargeW": 20,  "os": "iOS",          "color": "#d6e2e8"},
+  "iphone-16e":        {"screen": 6.1,  "panel": "Super Retina XDR OLED", "hz": 60,  "ram": "8",      "storage": "128 / 256 / 512 GB",        "mainCam": 48,  "frontCam": 12, "chargeW": 20,  "os": "iOS",          "color": "#f0f0ee"},
+  "iphone-16":         {"screen": 6.1,  "panel": "Super Retina XDR OLED", "hz": 60,  "ram": "8",      "storage": "128 / 256 / 512 GB",        "mainCam": 48,  "frontCam": 12, "chargeW": 25,  "os": "iOS",          "color": "#a9b8e3"},
+  "iphone-16-pro":     {"screen": 6.3,  "panel": "Super Retina XDR OLED", "hz": 120, "ram": "8",      "storage": "128 GB – 1 TB",             "mainCam": 48,  "frontCam": 12, "chargeW": 30,  "os": "iOS",          "color": "#c9b7a2"},
+  "iphone-17":         {"screen": 6.3,  "panel": "Super Retina XDR OLED", "hz": 120, "ram": "8",      "storage": "256 / 512 GB",              "mainCam": 48,  "frontCam": 18, "chargeW": 40,  "os": "iOS",          "color": "#b7a6d8"},
+  "iphone-17-pro":     {"screen": 6.3,  "panel": "Super Retina XDR OLED", "hz": 120, "ram": "12",     "storage": "256 GB – 1 TB",             "mainCam": 48,  "frontCam": 18, "chargeW": 40,  "os": "iOS",          "color": "#e47d3b"},
+  "iphone-17-pro-max": {"screen": 6.9,  "panel": "Super Retina XDR OLED", "hz": 120, "ram": "12",     "storage": "256 GB – 2 TB",             "mainCam": 48,  "frontCam": 18, "chargeW": 40,  "os": "iOS",          "color": "#33405a"},
+
+  "s25-ultra":         {"screen": 6.9,  "panel": "Dynamic AMOLED 2X",     "hz": 120, "ram": "12",     "storage": "256 GB – 1 TB",             "mainCam": 200, "frontCam": 12, "chargeW": 45,  "os": "Android (One UI)", "color": "#5a6470"},
+  "s25":               {"screen": 6.2,  "panel": "Dynamic AMOLED 2X",     "hz": 120, "ram": "12",     "storage": "128 / 256 / 512 GB",        "mainCam": 50,  "frontCam": 12, "chargeW": 25,  "os": "Android (One UI)", "color": "#a8c8e8"},
+  "s25-fe":            {"screen": 6.7,  "panel": "Dynamic AMOLED 2X",     "hz": 120, "ram": "8",      "storage": "128 / 256 / 512 GB",        "mainCam": 50,  "frontCam": 12, "chargeW": 45,  "os": "Android (One UI)", "color": "#2c3e66"},
+  "a56":               {"screen": 6.7,  "panel": "Super AMOLED",          "hz": 120, "ram": "8 / 12", "storage": "128 / 256 GB",              "mainCam": 50,  "frontCam": 12, "chargeW": 45,  "os": "Android (One UI)", "color": "#9fb6c9"},
+  "a36":               {"screen": 6.7,  "panel": "Super AMOLED",          "hz": 120, "ram": "8",      "storage": "128 / 256 GB",              "mainCam": 50,  "frontCam": 12, "chargeW": 45,  "os": "Android (One UI)", "color": "#b9a7d6"},
+  "a16":               {"screen": 6.7,  "panel": "Super AMOLED",          "hz": 90,  "ram": "4 / 6 / 8", "storage": "128 / 256 GB",           "mainCam": 50,  "frontCam": 13, "chargeW": 25,  "os": "Android (One UI)", "color": "#4a4a4f"},
+
+  "mi-15-ultra":       {"screen": 6.73, "panel": "AMOLED LTPO",           "hz": 120, "ram": "16",     "storage": "512 GB / 1 TB",             "mainCam": 50,  "frontCam": 32, "chargeW": 90,  "os": "Android (HyperOS)", "color": "#2a2a2c"},
+  "mi-15":             {"screen": 6.36, "panel": "AMOLED LTPO",           "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 32, "chargeW": 90,  "os": "Android (HyperOS)", "color": "#7fae8b"},
+  "mi-15t-pro":        {"screen": 6.83, "panel": "AMOLED",                "hz": 144, "ram": "12",     "storage": "256 GB – 1 TB",             "mainCam": 50,  "frontCam": 32, "chargeW": 90,  "os": "Android (HyperOS)", "color": "#c9b28a"},
+  "mi-15t":            {"screen": 6.83, "panel": "AMOLED",                "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 32, "chargeW": 67,  "os": "Android (HyperOS)", "color": "#d6c8b4"},
+  "poco-f7-pro":       {"screen": 6.67, "panel": "AMOLED",                "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 20, "chargeW": 90,  "os": "Android (HyperOS)", "color": "#3a3a3c"},
+  "poco-f7":           {"screen": 6.83, "panel": "AMOLED",                "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 20, "chargeW": 90,  "os": "Android (HyperOS)", "color": "#e8e8e8"},
+  "poco-x7-pro":       {"screen": 6.67, "panel": "AMOLED",                "hz": 120, "ram": "8 / 12", "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 20, "chargeW": 90,  "os": "Android (HyperOS)", "color": "#e8c040"},
+  "rn14-pro-plus":     {"screen": 6.67, "panel": "AMOLED",                "hz": 120, "ram": "8 / 12", "storage": "256 / 512 GB",              "mainCam": 200, "frontCam": 20, "chargeW": 120, "os": "Android (HyperOS)", "color": "#6a4c93"},
+  "rn14":              {"screen": 6.67, "panel": "AMOLED",                "hz": 120, "ram": "6 / 8",  "storage": "128 / 256 GB",              "mainCam": 108, "frontCam": 20, "chargeW": 33,  "os": "Android (HyperOS)", "color": "#2e6b5e"},
+
+  "find-x8-pro":       {"screen": 6.78, "panel": "AMOLED LTPO",           "hz": 120, "ram": "16",     "storage": "512 GB",                    "mainCam": 50,  "frontCam": 32, "chargeW": 80,  "os": "Android (ColorOS)", "color": "#f0ede6"},
+  "find-x8":           {"screen": 6.59, "panel": "AMOLED",                "hz": 120, "ram": "12 / 16", "storage": "256 / 512 GB",             "mainCam": 50,  "frontCam": 32, "chargeW": 80,  "os": "Android (ColorOS)", "color": "#5b6270"},
+  "reno14":            {"screen": 6.59, "panel": "AMOLED",                "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 50, "chargeW": 80,  "os": "Android (ColorOS)", "color": "#b5d9c9"},
+  "a5-pro":            {"screen": 6.67, "panel": "LCD",                   "hz": 120, "ram": "8",      "storage": "256 GB",                    "mainCam": 50,  "frontCam": 8,  "chargeW": 45,  "os": "Android (ColorOS)", "color": "#6a8caf"},
+
+  "x200-pro":          {"screen": 6.78, "panel": "AMOLED LTPO",           "hz": 120, "ram": "16",     "storage": "512 GB",                    "mainCam": 50,  "frontCam": 32, "chargeW": 90,  "os": "Android (Funtouch OS)", "color": "#2e3540"},
+  "x200-fe":           {"screen": 6.31, "panel": "AMOLED",                "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 50, "chargeW": 90,  "os": "Android (Funtouch OS)", "color": "#9cc5e0"},
+  "v50":               {"screen": 6.77, "panel": "AMOLED",                "hz": 120, "ram": "8 / 12", "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 50, "chargeW": 90,  "os": "Android (Funtouch OS)", "color": "#e9c6d0"},
+  "y29":               {"screen": 6.68, "panel": "LCD",                   "hz": 90,  "ram": "6 / 8",  "storage": "128 / 256 GB",              "mainCam": 50,  "frontCam": 8,  "chargeW": 44,  "os": "Android (Funtouch OS)", "color": "#3b4c7a"},
+
+  "op-13":             {"screen": 6.82, "panel": "AMOLED LTPO",           "hz": 120, "ram": "12 / 16", "storage": "256 / 512 GB",             "mainCam": 50,  "frontCam": 32, "chargeW": 100, "os": "Android (OxygenOS)", "color": "#1d2b4a"},
+  "op-13r":            {"screen": 6.78, "panel": "AMOLED",                "hz": 120, "ram": "12 / 16", "storage": "256 / 512 GB",             "mainCam": 50,  "frontCam": 16, "chargeW": 80,  "os": "Android (OxygenOS)", "color": "#9fb4c4"},
+  "op-nord5":          {"screen": 6.83, "panel": "AMOLED",                "hz": 144, "ram": "8 / 12", "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 50, "chargeW": 80,  "os": "Android (OxygenOS)", "color": "#2f3f6b"},
+
+  "pixel-9a":          {"screen": 6.3,  "panel": "pOLED",                 "hz": 120, "ram": "8",      "storage": "128 / 256 GB",              "mainCam": 48,  "frontCam": 13, "chargeW": 23,  "os": "Android",      "color": "#c8b6e2"},
+  "pixel-10":          {"screen": 6.3,  "panel": "OLED",                  "hz": 120, "ram": "12",     "storage": "128 / 256 GB",              "mainCam": 48,  "frontCam": 10.5, "chargeW": 30, "os": "Android",     "color": "#8fa6d9"},
+  "pixel-10-pro":      {"screen": 6.3,  "panel": "OLED LTPO",             "hz": 120, "ram": "16",     "storage": "128 GB – 1 TB",             "mainCam": 50,  "frontCam": 42, "chargeW": 30,  "os": "Android",      "color": "#e7e0d0"},
+
+  "gt7-pro":           {"screen": 6.78, "panel": "AMOLED",                "hz": 120, "ram": "12 / 16", "storage": "256 / 512 GB",             "mainCam": 50,  "frontCam": 16, "chargeW": 120, "os": "Android (realme UI)", "color": "#2d3a8c"},
+  "gt7":               {"screen": 6.8,  "panel": "AMOLED",                "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 16, "chargeW": 120, "os": "Android (realme UI)", "color": "#3a6fcf"},
+  "r14-pro-plus":      {"screen": 6.83, "panel": "AMOLED",                "hz": 120, "ram": "8 / 12", "storage": "256 / 512 GB",              "mainCam": 50,  "frontCam": 32, "chargeW": 80,  "os": "Android (realme UI)", "color": "#e8e2d5"},
+  "c75":               {"screen": 6.72, "panel": "LCD",                   "hz": 90,  "ram": "6 / 8",  "storage": "128 / 256 GB",              "mainCam": 50,  "frontCam": 8,  "chargeW": 45,  "os": "Android (realme UI)", "color": "#c8a64a"},
+
+  "magic7-pro":        {"screen": 6.8,  "panel": "OLED LTPO",             "hz": 120, "ram": "12",     "storage": "512 GB",                    "mainCam": 50,  "frontCam": 50, "chargeW": 100, "os": "Android (MagicOS)", "color": "#1f1f21"},
+  "honor-400":         {"screen": 6.55, "panel": "AMOLED",                "hz": 120, "ram": "12",     "storage": "256 / 512 GB",              "mainCam": 200, "frontCam": 50, "chargeW": 66,  "os": "Android (MagicOS)", "color": "#d9c9a8"},
+
+  "nothing-3":         {"screen": 6.67, "panel": "AMOLED",                "hz": 120, "ram": "12 / 16", "storage": "256 / 512 GB",             "mainCam": 50,  "frontCam": 50, "chargeW": 65,  "os": "Android (Nothing OS)", "color": "#e9e9e9"},
+  "nothing-3a":        {"screen": 6.77, "panel": "AMOLED",                "hz": 120, "ram": "8 / 12", "storage": "128 / 256 GB",              "mainCam": 50,  "frontCam": 32, "chargeW": 50,  "os": "Android (Nothing OS)", "color": "#f2f2f2"},
+
+  "rog-9-pro":         {"screen": 6.78, "panel": "AMOLED",                "hz": 185, "ram": "16 / 24", "storage": "512 GB / 1 TB",            "mainCam": 50,  "frontCam": 32, "chargeW": 65,  "os": "Android (ROG UI)", "color": "#222224"}
+}

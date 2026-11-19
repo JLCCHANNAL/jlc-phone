@@ -1,0 +1,61 @@
+{
+  "_note": "ราคา (บาท) และคะแนน 0-100 เป็นค่าประมาณเพื่อการเรียนรู้ ควรอัปเดตจากแหล่งข้อมูลจริงก่อนใช้งาน",
+  "brands": ["Apple", "Samsung", "Xiaomi", "OPPO", "vivo", "OnePlus", "Google", "realme", "Honor", "Nothing", "ASUS"],
+  "phones": [
+    {"id": "iphone-15", "brand": "Apple", "name": "iPhone 15", "price": 25900, "chip": "A16 Bionic", "battery": 3349, "weight": 171, "updates": 6, "scores": {"cpu": 78, "gpu": 72, "camera": 76, "battery": 70, "display": 75, "charging": 40}},
+    {"id": "iphone-16e", "brand": "Apple", "name": "iPhone 16e", "price": 22900, "chip": "A18", "battery": 4005, "weight": 167, "updates": 7, "scores": {"cpu": 84, "gpu": 74, "camera": 70, "battery": 78, "display": 70, "charging": 38}},
+    {"id": "iphone-16", "brand": "Apple", "name": "iPhone 16", "price": 29900, "chip": "A18", "battery": 3561, "weight": 170, "updates": 7, "scores": {"cpu": 85, "gpu": 78, "camera": 78, "battery": 74, "display": 76, "charging": 45}},
+    {"id": "iphone-16-pro", "brand": "Apple", "name": "iPhone 16 Pro", "price": 39900, "chip": "A18 Pro", "battery": 3582, "weight": 199, "updates": 7, "scores": {"cpu": 90, "gpu": 85, "camera": 90, "battery": 76, "display": 90, "charging": 50}},
+    {"id": "iphone-17", "brand": "Apple", "name": "iPhone 17", "price": 29900, "chip": "A19", "battery": 3692, "weight": 177, "updates": 7, "scores": {"cpu": 92, "gpu": 88, "camera": 82, "battery": 80, "display": 88, "charging": 55}},
+    {"id": "iphone-17-pro", "brand": "Apple", "name": "iPhone 17 Pro", "price": 41900, "chip": "A19 Pro", "battery": 4252, "weight": 204, "updates": 7, "scores": {"cpu": 95, "gpu": 94, "camera": 94, "battery": 84, "display": 93, "charging": 58}},
+    {"id": "iphone-17-pro-max", "brand": "Apple", "name": "iPhone 17 Pro Max", "price": 48900, "chip": "A19 Pro", "battery": 4832, "weight": 233, "updates": 7, "scores": {"cpu": 95, "gpu": 95, "camera": 95, "battery": 94, "display": 94, "charging": 58}},
+
+    {"id": "s25-ultra", "brand": "Samsung", "name": "Galaxy S25 Ultra", "price": 46900, "chip": "Snapdragon 8 Elite", "battery": 5000, "weight": 218, "updates": 7, "scores": {"cpu": 93, "gpu": 94, "camera": 94, "battery": 84, "display": 95, "charging": 60}},
+    {"id": "s25", "brand": "Samsung", "name": "Galaxy S25", "price": 31900, "chip": "Snapdragon 8 Elite", "battery": 4000, "weight": 162, "updates": 7, "scores": {"cpu": 93, "gpu": 93, "camera": 82, "battery": 70, "display": 86, "charging": 40}},
+    {"id": "s25-fe", "brand": "Samsung", "name": "Galaxy S25 FE", "price": 22990, "chip": "Exynos 2400", "battery": 4900, "weight": 190, "updates": 7, "scores": {"cpu": 80, "gpu": 78, "camera": 78, "battery": 74, "display": 84, "charging": 60}},
+    {"id": "a56", "catalog": "samsung/galaxy-a56", "brand": "Samsung", "name": "Galaxy A56 5G", "price": 14990, "chip": "Exynos 1580", "battery": 5000, "weight": 198, "updates": 6, "scores": {"cpu": 62, "gpu": 55, "camera": 68, "battery": 80, "display": 82, "charging": 60}},
+    {"id": "a36", "catalog": "samsung/galaxy-a36", "brand": "Samsung", "name": "Galaxy A36 5G", "price": 11990, "chip": "Snapdragon 6 Gen 3", "battery": 5000, "weight": 195, "updates": 6, "scores": {"cpu": 58, "gpu": 52, "camera": 62, "battery": 80, "display": 80, "charging": 60}},
+    {"id": "a16", "catalog": "samsung/galaxy-a16-5g", "brand": "Samsung", "name": "Galaxy A16", "price": 5990, "chip": "Helio G99", "battery": 5000, "weight": 200, "updates": 6, "scores": {"cpu": 35, "gpu": 28, "camera": 48, "battery": 80, "display": 65, "charging": 35}},
+
+    {"id": "mi-15-ultra", "brand": "Xiaomi", "name": "Xiaomi 15 Ultra", "price": 44990, "chip": "Snapdragon 8 Elite", "battery": 5410, "weight": 226, "updates": 5, "scores": {"cpu": 93, "gpu": 94, "camera": 97, "battery": 86, "display": 93, "charging": 80}},
+    {"id": "mi-15", "brand": "Xiaomi", "name": "Xiaomi 15", "price": 29990, "chip": "Snapdragon 8 Elite", "battery": 5240, "weight": 191, "updates": 5, "scores": {"cpu": 93, "gpu": 94, "camera": 85, "battery": 84, "display": 88, "charging": 80}},
+    {"id": "mi-15t-pro", "brand": "Xiaomi", "name": "Xiaomi 15T Pro", "price": 21990, "chip": "Dimensity 9400+", "battery": 5500, "weight": 210, "updates": 5, "scores": {"cpu": 88, "gpu": 86, "camera": 84, "battery": 88, "display": 88, "charging": 90}},
+    {"id": "mi-15t", "catalog": "xiaomi/15t-2", "brand": "Xiaomi", "name": "Xiaomi 15T", "price": 15990, "chip": "Dimensity 8400-Ultra", "battery": 5500, "weight": 194, "updates": 5, "scores": {"cpu": 78, "gpu": 72, "camera": 76, "battery": 88, "display": 86, "charging": 75}},
+    {"id": "poco-f7-pro", "brand": "Xiaomi", "name": "POCO F7 Pro", "price": 15990, "chip": "Snapdragon 8 Gen 3", "battery": 6000, "weight": 206, "updates": 4, "scores": {"cpu": 85, "gpu": 86, "camera": 72, "battery": 82, "display": 88, "charging": 80}},
+    {"id": "poco-f7", "brand": "Xiaomi", "name": "POCO F7", "price": 12990, "chip": "Snapdragon 8s Gen 4", "battery": 6500, "weight": 215, "updates": 4, "scores": {"cpu": 82, "gpu": 80, "camera": 65, "battery": 92, "display": 84, "charging": 70}},
+    {"id": "poco-x7-pro", "brand": "Xiaomi", "name": "POCO X7 Pro", "price": 10990, "chip": "Dimensity 8400-Ultra", "battery": 6000, "weight": 198, "updates": 4, "scores": {"cpu": 76, "gpu": 72, "camera": 62, "battery": 90, "display": 84, "charging": 75}},
+    {"id": "rn14-pro-plus", "catalog": "redmi/note-14-pro-plus", "brand": "Xiaomi", "name": "Redmi Note 14 Pro+ 5G", "price": 12990, "chip": "Snapdragon 7s Gen 3", "battery": 5110, "weight": 205, "updates": 4, "scores": {"cpu": 62, "gpu": 55, "camera": 72, "battery": 86, "display": 85, "charging": 90}},
+    {"id": "rn14", "brand": "Xiaomi", "name": "Redmi Note 14", "price": 6490, "chip": "Helio G99-Ultra", "battery": 5500, "weight": 185, "updates": 3, "scores": {"cpu": 42, "gpu": 35, "camera": 58, "battery": 80, "display": 78, "charging": 45}},
+
+    {"id": "find-x8-pro", "brand": "OPPO", "name": "OPPO Find X8 Pro", "price": 39990, "chip": "Dimensity 9400", "battery": 5910, "weight": 215, "updates": 5, "scores": {"cpu": 92, "gpu": 92, "camera": 95, "battery": 86, "display": 90, "charging": 80}},
+    {"id": "find-x8", "brand": "OPPO", "name": "OPPO Find X8", "price": 29990, "chip": "Dimensity 9400", "battery": 5630, "weight": 193, "updates": 5, "scores": {"cpu": 92, "gpu": 92, "camera": 86, "battery": 86, "display": 86, "charging": 80}},
+    {"id": "reno14", "catalog": "oppo/reno-14", "brand": "OPPO", "name": "OPPO Reno14 5G", "price": 17990, "chip": "Dimensity 8350", "battery": 6000, "weight": 187, "updates": 5, "scores": {"cpu": 70, "gpu": 62, "camera": 80, "battery": 88, "display": 84, "charging": 80}},
+    {"id": "a5-pro", "catalog": "oppo/oppo-a5-pro", "brand": "OPPO", "name": "OPPO A5 Pro 5G", "price": 7990, "chip": "Dimensity 6300", "battery": 5800, "weight": 195, "updates": 3, "scores": {"cpu": 40, "gpu": 32, "camera": 55, "battery": 90, "display": 70, "charging": 45}},
+
+    {"id": "x200-pro", "brand": "vivo", "name": "vivo X200 Pro", "price": 36999, "chip": "Dimensity 9400", "battery": 6000, "weight": 223, "updates": 5, "scores": {"cpu": 92, "gpu": 92, "camera": 96, "battery": 90, "display": 90, "charging": 80}},
+    {"id": "x200-fe", "brand": "vivo", "name": "vivo X200 FE", "price": 19999, "chip": "Dimensity 9300+", "battery": 6500, "weight": 186, "updates": 4, "scores": {"cpu": 84, "gpu": 82, "camera": 82, "battery": 88, "display": 84, "charging": 75}},
+    {"id": "v50", "brand": "vivo", "name": "vivo V50", "price": 14999, "chip": "Snapdragon 7 Gen 3", "battery": 6000, "weight": 189, "updates": 4, "scores": {"cpu": 60, "gpu": 52, "camera": 80, "battery": 90, "display": 84, "charging": 75}},
+    {"id": "y29", "catalog": "vivo/y29-4g", "brand": "vivo", "name": "vivo Y29", "price": 5999, "chip": "Snapdragon 685", "battery": 5500, "weight": 198, "updates": 3, "scores": {"cpu": 35, "gpu": 28, "camera": 45, "battery": 85, "display": 65, "charging": 50}},
+
+    {"id": "op-13", "brand": "OnePlus", "name": "OnePlus 13", "price": 29990, "chip": "Snapdragon 8 Elite", "battery": 6000, "weight": 213, "updates": 5, "scores": {"cpu": 95, "gpu": 94, "camera": 86, "battery": 92, "display": 92, "charging": 85}},
+    {"id": "op-13r", "brand": "OnePlus", "name": "OnePlus 13R", "price": 19990, "chip": "Snapdragon 8 Gen 3", "battery": 6000, "weight": 206, "updates": 5, "scores": {"cpu": 88, "gpu": 88, "camera": 76, "battery": 94, "display": 88, "charging": 75}},
+    {"id": "op-nord5", "brand": "OnePlus", "name": "OnePlus Nord 5", "price": 14990, "chip": "Snapdragon 8s Gen 3", "battery": 6800, "weight": 211, "updates": 5, "scores": {"cpu": 82, "gpu": 82, "camera": 70, "battery": 90, "display": 84, "charging": 75}},
+
+    {"id": "pixel-9a", "brand": "Google", "name": "Pixel 9a", "price": 15990, "chip": "Tensor G4", "battery": 5100, "weight": 186, "updates": 7, "scores": {"cpu": 70, "gpu": 58, "camera": 84, "battery": 84, "display": 84, "charging": 30}},
+    {"id": "pixel-10", "brand": "Google", "name": "Pixel 10", "price": 29990, "chip": "Tensor G5", "battery": 4970, "weight": 204, "updates": 7, "scores": {"cpu": 82, "gpu": 70, "camera": 86, "battery": 80, "display": 86, "charging": 40}},
+    {"id": "pixel-10-pro", "brand": "Google", "name": "Pixel 10 Pro", "price": 39990, "chip": "Tensor G5", "battery": 4870, "weight": 207, "updates": 7, "scores": {"cpu": 82, "gpu": 70, "camera": 94, "battery": 82, "display": 92, "charging": 45}},
+
+    {"id": "gt7-pro", "brand": "realme", "name": "realme GT 7 Pro", "price": 22990, "chip": "Snapdragon 8 Elite", "battery": 5800, "weight": 222, "updates": 4, "scores": {"cpu": 94, "gpu": 94, "camera": 80, "battery": 92, "display": 90, "charging": 80}},
+    {"id": "gt7", "brand": "realme", "name": "realme GT 7", "price": 15990, "chip": "Dimensity 9400e", "battery": 7000, "weight": 206, "updates": 4, "scores": {"cpu": 86, "gpu": 85, "camera": 72, "battery": 95, "display": 86, "charging": 85}},
+    {"id": "r14-pro-plus", "brand": "realme", "name": "realme 14 Pro+", "price": 13999, "chip": "Snapdragon 7s Gen 3", "battery": 6000, "weight": 194, "updates": 3, "scores": {"cpu": 58, "gpu": 50, "camera": 78, "battery": 86, "display": 84, "charging": 75}},
+    {"id": "c75", "brand": "realme", "name": "realme C75", "price": 5999, "chip": "Helio G92 Max", "battery": 6000, "weight": 196, "updates": 2, "scores": {"cpu": 35, "gpu": 28, "camera": 45, "battery": 88, "display": 66, "charging": 45}},
+
+    {"id": "magic7-pro", "brand": "Honor", "name": "Honor Magic7 Pro", "price": 34990, "chip": "Snapdragon 8 Elite", "battery": 5270, "weight": 223, "updates": 7, "scores": {"cpu": 93, "gpu": 93, "camera": 92, "battery": 86, "display": 92, "charging": 80}},
+    {"id": "honor-400", "brand": "Honor", "name": "Honor 400", "price": 15990, "chip": "Snapdragon 7 Gen 3", "battery": 5300, "weight": 184, "updates": 6, "scores": {"cpu": 62, "gpu": 52, "camera": 82, "battery": 86, "display": 86, "charging": 75}},
+
+    {"id": "nothing-3", "brand": "Nothing", "name": "Nothing Phone (3)", "price": 26990, "chip": "Snapdragon 8s Gen 4", "battery": 5150, "weight": 218, "updates": 5, "scores": {"cpu": 82, "gpu": 80, "camera": 80, "battery": 84, "display": 88, "charging": 60}},
+    {"id": "nothing-3a", "brand": "Nothing", "name": "Nothing Phone (3a)", "price": 12990, "chip": "Snapdragon 7s Gen 3", "battery": 5000, "weight": 201, "updates": 6, "scores": {"cpu": 60, "gpu": 52, "camera": 70, "battery": 84, "display": 82, "charging": 60}},
+
+    {"id": "rog-9-pro", "brand": "ASUS", "name": "ROG Phone 9 Pro", "price": 39990, "chip": "Snapdragon 8 Elite", "battery": 5800, "weight": 227, "updates": 2, "scores": {"cpu": 95, "gpu": 96, "camera": 72, "battery": 90, "display": 92, "charging": 70}}
+  ]
+}
