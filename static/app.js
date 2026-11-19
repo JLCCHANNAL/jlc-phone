@@ -476,6 +476,25 @@ function bindColorPicker() {
   });
 }
 
+// เปลี่ยนข้อความบนปุ่มแบบนุ่มนวล: ปุ่มค่อยๆ ยืด/หดตามความยาวข้อความใหม่ + ข้อความค่อยๆ ปรากฏ
+function swapLabel(btn, label, text) {
+  if (!label || label.textContent === text) return;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const from = btn && btn.getBoundingClientRect().width;
+  label.textContent = text;
+  if (reduce || !label.animate) return;
+  if (btn && from) {
+    const to = btn.getBoundingClientRect().width;
+    if (Math.abs(to - from) > 0.5) {
+      btn.animate([{ width: `${from}px` }, { width: `${to}px` }], { duration: 320, easing: "cubic-bezier(.22,.9,.24,1)" });
+    }
+  }
+  label.animate(
+    [{ opacity: 0, transform: "translateY(5px) scale(.96)", filter: "blur(3px)" }, { opacity: 1, transform: "none", filter: "blur(0)" }],
+    { duration: 300, easing: "cubic-bezier(.22,.9,.24,1)" }
+  );
+}
+
 // ---------- โมเดล 3 มิติในหน้ารายละเอียด ----------
 let viewer = null;
 
@@ -507,10 +526,10 @@ async function start3D(p) {
       off: "กดปุ่มเปิดหน้าจอ หรือกดปุ่มข้างตัวเครื่อง",
     };
     const sync = (s) => {
-      $("#powerLabel").textContent = s === "off" ? "เปิดหน้าจอ" : "ปิดหน้าจอ";
+      swapLabel($("#powerBtn"), $("#powerLabel"), s === "off" ? "เปิดหน้าจอ" : "ปิดหน้าจอ");
       $("#powerBtn").setAttribute("aria-pressed", String(s !== "off"));
       $("#powerBtn").classList.toggle("is-off", s === "off");
-      $("#screenHint").textContent = hints[s];
+      swapLabel(null, $("#screenHint"), hints[s]);
     };
     v.onOSState = sync;
     sync(v.os.state);
@@ -525,7 +544,7 @@ async function start3D(p) {
     fb.hidden = false;
     $("#screenControls").hidden = false;
     v.onFold = (closed) => {
-      $("#foldLabel").textContent = closed ? "กางเครื่อง" : "พับเครื่อง";
+      swapLabel(fb, $("#foldLabel"), closed ? "กางเครื่อง" : "พับเครื่อง");
       fb.setAttribute("aria-pressed", String(closed));
     };
     fb.onclick = () => v.toggleFold();

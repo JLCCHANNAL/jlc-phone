@@ -485,6 +485,9 @@ a { color: var(--accent); text-decoration: none; }
 .power-btn.is-off .ico { color: var(--muted); }
 .power-btn:hover { border-color: var(--muted); }
 .fold-btn .ico { color: var(--accent); }
+.power-btn[hidden], .screen-controls[hidden] { display: none; }
+.power-btn { overflow: hidden; white-space: nowrap; }
+.power-btn > span { display: inline-block; }   /* รุ่นที่พับไม่ได้ ไม่แสดงปุ่มพับเครื่อง */
 .fold-btn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .screen-hint { color: var(--text); font-size: 12px; margin: 8px 0 0; text-align: center; max-width: 280px; }
 
