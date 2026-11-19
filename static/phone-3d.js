@@ -324,31 +324,49 @@ class Phone3DViewer {
     const el = this.renderer.domElement;
     el.style.touchAction = "none";
     el.style.cursor = "grab";
-    let last = null;
+    // นิ้วเดียว/เมาส์ = หมุน, สองนิ้ว = ถ่างเพื่อซูม, ลูกกลิ้ง = ซูม
+    const pts = new Map();
+    let pinchDist = 0;
+    const zoomTo = (z) => { this.camera.position.z = Math.max(3.6, Math.min(8, z)); };
+    const dist = () => { const [a, b] = [...pts.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+
     el.addEventListener("pointerdown", (e) => {
-      last = { x: e.clientX, y: e.clientY };
-      this.auto = false; this.target = null; this.dragging = true;
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
       el.setPointerCapture(e.pointerId);
+      this.auto = false; this.target = null; this.dragging = true;
+      this.vel.x = this.vel.y = 0;
       el.style.cursor = "grabbing";
-      this.autoAfterIntro = false;
+      if (pts.size === 2) pinchDist = dist();
       this.onUserRotate && this.onUserRotate();
     });
     el.addEventListener("pointermove", (e) => {
-      if (!last) return;
-      const dx = e.clientX - last.x, dy = e.clientY - last.y;
-      last = { x: e.clientX, y: e.clientY };
+      const prev = pts.get(e.pointerId);
+      if (!prev) return;
+      const cur = { x: e.clientX, y: e.clientY };
+      pts.set(e.pointerId, cur);
+      if (pts.size >= 2) {
+        const d = dist();
+        if (pinchDist) zoomTo(this.camera.position.z * (pinchDist / d));
+        pinchDist = d;
+        return;
+      }
+      const dx = cur.x - prev.x, dy = cur.y - prev.y;
       this.vel.y = dx * 0.01; this.vel.x = dy * 0.01;
       this.group.rotation.y += this.vel.y;
       this.group.rotation.x = Math.max(-0.9, Math.min(0.9, this.group.rotation.x + this.vel.x));
     });
-    const up = () => { last = null; this.dragging = false; el.style.cursor = "grab"; };
+    const up = (e) => {
+      pts.delete(e.pointerId);
+      if (pts.size < 2) pinchDist = 0;
+      if (pts.size === 0) { this.dragging = false; el.style.cursor = "grab"; }
+      else this.vel.x = this.vel.y = 0;   // ยกนิ้วหนึ่งหลังซูม: ไม่ให้เครื่องกระตุกหมุน
+    };
     el.addEventListener("pointerup", up);
     el.addEventListener("pointercancel", up);
     el.addEventListener("wheel", (e) => {
       e.preventDefault();
-      this.camera.position.z = Math.max(3.6, Math.min(8, this.camera.position.z + e.deltaY * 0.004));
+      zoomTo(this.camera.position.z + e.deltaY * 0.004);
     }, { passive: false });
-    el.addEventListener("dblclick", () => this.face("back"));
   }
 
   face(side) {

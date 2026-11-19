@@ -363,7 +363,9 @@ async function openDetail(id) {
     <div class="detail-hero">
       <div class="detail-art">
         <div class="viewer3d" id="viewer3d"><div class="viewer-fallback">${phoneImage(p, "large")}</div></div>
-        <p class="viewer-hint" id="viewerHint" hidden>3D · ใช้นิ้วหรือเมาส์ลากเพื่อหมุน · ลูกกลิ้งเพื่อซูม</p>
+        <p class="viewer-hint" id="viewerHint" hidden>${matchMedia("(pointer: coarse)").matches
+          ? "3D · ลากนิ้วเพื่อหมุน · ถ่างสองนิ้วเพื่อซูม"
+          : "3D · ลากเมาส์เพื่อหมุน · ลูกกลิ้งเพื่อซูม"}</p>
         <p class="viewer-credit" id="viewerCredit" hidden></p>
       </div>
       <div class="detail-info">
