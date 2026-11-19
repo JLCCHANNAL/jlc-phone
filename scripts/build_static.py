@@ -44,6 +44,7 @@ def build_data():
             "totalWithSpecs": len(server.PHONES),
             "criteria": server.CRITERIA,
             "presets": server.PRESETS,
+            "categories": server.CATEGORIES,
         },
         "constants": {
             "valueBase": server.VALUE_BASE,
