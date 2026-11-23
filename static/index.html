@@ -55,6 +55,19 @@
     <h1>มือถือที่ใช่<br><span class="grad">ในงบที่คุ้ม</span></h1>
     <p class="lead">เลือกแบรนด์ ตั้งงบ แล้วบอกว่าคุณใช้มือถือทำอะไร<br>เราจะคำนวณและจัดอันดับความคุ้มค่าให้</p>
     <a class="btn btn-lg btn-arrow" href="#step-brand">เริ่มค้นหา</a>
+    <!-- แอนิเมชันแบบโฆษณา: เลื่อนจอแล้วชิ้นส่วนมือถือลอยเข้ามาประกอบเป็นเครื่อง -->
+    <div class="assemble" id="assemble" aria-label="แอนิเมชันประกอบมือถือ">
+      <div class="assemble-sticky">
+        <canvas class="assemble-canvas" id="assembleCanvas" aria-hidden="true"></canvas>
+        <div class="assemble-copy" id="assembleCopy">
+          <p class="assemble-eyebrow" id="assembleEyebrow">ประกอบจากชิ้นส่วนที่ดีที่สุด</p>
+          <h2 class="assemble-name" id="assembleName"></h2>
+          <p class="assemble-spec" id="assembleSpec"></p>
+          <button type="button" class="btn btn-ghost assemble-cta" id="assembleCta">ดูรายละเอียด</button>
+        </div>
+        <p class="assemble-hint" id="assembleHint">เลื่อนลงเพื่อประกอบเครื่อง</p>
+      </div>
+    </div>
     <div class="cat-section">
       <p class="cat-eyebrow">หรือเลือกตามหมวด</p>
       <div class="cat-grid" id="categoryGrid"></div>
@@ -195,5 +208,6 @@
   <script src="phone-3d.js"></script>
   <script src="app.js"></script>
   <script src="launch.js"></script>
+  <script src="assemble.js"></script>
 </body>
 </html>
