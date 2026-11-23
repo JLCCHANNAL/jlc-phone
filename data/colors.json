@@ -11,6 +11,7 @@
   "apple-iphone-16-pro-max": [["Desert Titanium", "#BFA48F"], ["Natural Titanium", "#C2BCB2"], ["White Titanium", "#F2F1ED"], ["Black Titanium", "#3C3C3D"]],
   "iphone-17": [["Lavender", "#CDBFE3"], ["Mist Blue", "#A9BDD6"], ["Sage", "#B8C4AA"], ["White", "#F5F5F3"], ["Black", "#2B2B2D"]],
   "iphone-17-pro": [["Cosmic Orange", "#E47D3B"], ["Deep Blue", "#33405A"], ["Silver", "#E3E4E5"]],
+  "apple-apple-iphone-18-pro-max": [["Burgundy", "#5B1E2C"], ["Black", "#2A2A2D"], ["Silver", "#E2E3E5"], ["Glacier", "#C9D9E4"]],
   "iphone-17-pro-max": [["Deep Blue", "#33405A"], ["Cosmic Orange", "#E47D3B"], ["Silver", "#E3E4E5"]],
   "apple-iphone-air": [["Sky Blue", "#CFE0EE"], ["Light Gold", "#EADBC4"], ["Cloud White", "#F2F2F0"], ["Space Black", "#2B2B2D"]],
   "apple-iphone-17e": [["White", "#F2F1EE"], ["Black", "#2E2E30"]],
