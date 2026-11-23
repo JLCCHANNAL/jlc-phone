@@ -65,7 +65,7 @@ function foldType(p) {
   const panel = (p.specs && p.specs.panel) || "";
   if (!/พับ/.test(panel)) return null;
   if (/สามทบ/.test(panel)) return "tri";
-  return /Flip|razr/i.test(p.name) ? "flip" : "book";
+  return /Flip|razr|Pocket/i.test(p.name) ? "flip" : "book";   // HUAWEI Pocket = พับบน-ล่าง
 }
 
 // สี่เหลี่ยมที่กำหนดความโค้งแต่ละมุมได้ [บนซ้าย, บนขวา, ล่างขวา, ล่างซ้าย] (ฝั่งบานพับใช้มุมเหลี่ยม)
