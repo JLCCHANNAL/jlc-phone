@@ -47,6 +47,22 @@ const LocalAPI = (() => {
     return p.scores[key];
   }
 
+  function widenBudget(pool, min, max) {
+    const hasMin = min > 0, hasMax = max < 1e9;
+    const count = (lo, hi) => pool.filter((p) => p.price >= lo && p.price <= hi).length;
+    if (!(hasMin || hasMax) || count(min, max) >= 6) return [min, max, null];
+    const center = hasMin && hasMax ? (min + max) / 2 : hasMax ? max : min;
+    let tol = Math.max(1000, center * 0.05), lo = min, hi = max;
+    while (tol <= center * 0.5) {
+      lo = hasMin ? Math.max(0, min - tol) : 0;
+      hi = hasMax ? max + tol : 1e9;
+      if (count(lo, hi) >= 6) break;
+      tol *= 1.5;
+    }
+    if (count(lo, hi) === count(min, max)) return [min, max, null];
+    return [lo, hi, { min: hasMin ? Math.round(lo) : null, max: hasMax ? Math.round(hi) : null }];
+  }
+
   function recommend(body) {
     const brands = new Set(body.brands || []);
     let min = Number(body.minPrice) || 0;
@@ -58,11 +74,12 @@ const LocalAPI = (() => {
     if (!Object.keys(weights).length) weights = { ...D.meta.presets[2].weights };
     const base = D.constants.valueBase;
 
+    // รุ่นที่ตรงแบรนด์/หมวด แล้วขยายช่วงราคาถ้างบแคบจนแทบไม่มีรุ่น (เหมือนฝั่งเซิร์ฟเวอร์)
+    const pool = D.phones.filter((p) => (!brands.size || brands.has(p.brandSlug)) && matchTag(p, body.tag));
+    const [lo, hi, widened] = widenBudget(pool, min, max);
     const results = [];
-    for (const p of D.phones) {
-      if (brands.size && !brands.has(p.brandSlug)) continue;
-      if (p.price < min || p.price > max) continue;
-      if (!matchTag(p, body.tag)) continue;
+    for (const p of pool) {
+      if (p.price < lo || p.price > hi) continue;
       const breakdown = {};
       for (const k of Object.keys(weights)) breakdown[k] = Math.round(criterionScore(p, k));
       const total = Object.values(weights).reduce((a, b) => a + b, 0);
@@ -71,7 +88,7 @@ const LocalAPI = (() => {
       const focusKeys = starred.length ? starred : Object.keys(weights);
       const focus = focusKeys.reduce((a, k) => a + breakdown[k], 0) / focusKeys.length;
       const raw = Math.max(0, perf - base) ** 2 * Math.max(0, focus - base) / p.price;
-      results.push({ ...p, breakdown, perf: Math.round(perf * 10) / 10, _raw: raw });
+      results.push({ ...p, breakdown, perf: Math.round(perf * 10) / 10, _raw: raw, nearBudget: p.price < min || p.price > max });
     }
     if (results.length) {
       const bestRaw = Math.max(...results.map((r) => r._raw)) || 1;
@@ -97,7 +114,7 @@ const LocalAPI = (() => {
       });
     }
     const noSpecCount = D.catalog.filter((i) => (!brands.size || brands.has(i.b)) && !i.p).length;
-    return { count: list.length, weights, results: list, noSpecCount };
+    return { count: list.length, weights, results: list, noSpecCount, widened };
   }
 
   function catalog(params) {

@@ -40,7 +40,7 @@ const GLTF_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders
     renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     renderer.outputEncoding = T.sRGBEncoding;
     renderer.toneMapping = T.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.3;
     const scene = new T.Scene();
     scene.environment = studioEnvironment(T, renderer);
     const camera = new T.PerspectiveCamera(26, 1, 0.1, 80);
@@ -50,6 +50,59 @@ const GLTF_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders
     const soft = new T.DirectionalLight(0xffffff, 0.55); soft.position.set(-2, 1, 5); scene.add(soft);   // ไฟหน้าให้สีตัวเครื่องชัด
     // แสงวาบตอนชิ้นส่วนเข้าล็อก
     const flash = new T.PointLight(0x9fc4ff, 0, 6, 2); flash.position.set(0, 0, 2); scene.add(flash);
+    // ไฟสปอตจากด้านบน + ไฟขอบ (rim) ขาว/ฟ้าจากด้านหลัง ให้ขอบเครื่องเป็นเส้นแสงแบบภาพโฆษณา
+    const spot = new T.SpotLight(0xffffff, 1.4, 14, 0.55, 0.6, 1.2); spot.position.set(0.5, 5, 3.5); scene.add(spot); scene.add(spot.target);
+    const rimL = new T.DirectionalLight(0x8fb6ff, 1.1); rimL.position.set(-5, 1.5, -3); scene.add(rimL);
+    const rimR = new T.DirectionalLight(0xffffff, 0.9); rimR.position.set(5, 2, -2.5); scene.add(rimR);
+    // แสงกวาดผ่านตัวเครื่องตอนแยกสองเครื่อง
+    const sweep = new T.PointLight(0xffffff, 0, 5, 2); scene.add(sweep);
+
+    // ประกายไฟตอนชิ้นส่วนเข้าล็อก (อนุภาคเรืองแสง)
+    const sparkTex = (() => {
+      const c = document.createElement("canvas"); c.width = c.height = 64;
+      const g = c.getContext("2d"), grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+      grd.addColorStop(0, "rgba(255,255,255,1)"); grd.addColorStop(0.25, "rgba(170,210,255,.9)"); grd.addColorStop(1, "rgba(80,140,255,0)");
+      g.fillStyle = grd; g.fillRect(0, 0, 64, 64);
+      return new T.CanvasTexture(c);
+    })();
+    const SPARKS = 360;
+    const sparkPos = new Float32Array(SPARKS * 3), sparkVel = new Float32Array(SPARKS * 3), sparkLife = new Float32Array(SPARKS);
+    const sparkGeo = new T.BufferGeometry();
+    sparkGeo.setAttribute("position", new T.BufferAttribute(sparkPos, 3));
+    const sparkMat = new T.PointsMaterial({ size: 0.07, map: sparkTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, color: 0xcfe2ff });
+    const sparks = new T.Points(sparkGeo, sparkMat); sparks.frustumCulled = false; scene.add(sparks);
+    let sparkNext = 0;
+    const burst = (pos, n) => {
+      for (let i = 0; i < n; i++) {
+        const k = sparkNext; sparkNext = (sparkNext + 1) % SPARKS;
+        sparkPos[k * 3] = pos.x; sparkPos[k * 3 + 1] = pos.y; sparkPos[k * 3 + 2] = pos.z;
+        const th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1), sp = 0.8 + Math.random() * 1.8;
+        sparkVel[k * 3] = Math.sin(ph) * Math.cos(th) * sp; sparkVel[k * 3 + 1] = Math.cos(ph) * sp; sparkVel[k * 3 + 2] = Math.sin(ph) * Math.sin(th) * sp;
+        sparkLife[k] = 0.45 + Math.random() * 0.35;
+      }
+    };
+    const stepSparks = (dt) => {
+      for (let k = 0; k < SPARKS; k++) {
+        if (sparkLife[k] <= 0) { sparkPos[k * 3 + 1] = -99; continue; }
+        sparkLife[k] -= dt;
+        sparkVel[k * 3 + 1] -= 2.2 * dt;                       // แรงโน้มถ่วงเล็กน้อย
+        for (let a = 0; a < 3; a++) { sparkVel[k * 3 + a] *= 0.96; sparkPos[k * 3 + a] += sparkVel[k * 3 + a] * dt; }
+      }
+      sparkGeo.attributes.position.needsUpdate = true;
+    };
+
+    // แสงเรืองบนพื้นใต้เครื่อง + เงา
+    const floorTex = (() => {
+      const c = document.createElement("canvas"); c.width = c.height = 256;
+      const g = c.getContext("2d"), grd = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+      grd.addColorStop(0, "rgba(140,180,255,.55)"); grd.addColorStop(0.45, "rgba(90,120,255,.18)"); grd.addColorStop(1, "rgba(0,0,0,0)");
+      g.fillStyle = grd; g.fillRect(0, 0, 256, 256);
+      return new T.CanvasTexture(c);
+    })();
+    const floorGlow = new T.Mesh(new T.PlaneGeometry(4.2, 1.6), new T.MeshBasicMaterial({ map: floorTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: 0 }));
+    floorGlow.rotation.x = -Math.PI / 2; floorGlow.position.y = -1.12; scene.add(floorGlow);
+    const shadow = contactShadow(T); shadow.position.y = -1.13; shadow.scale.set(1.5, 1.5, 1.5); scene.add(shadow);
+    const tmpV = new T.Vector3();
 
     const makeViewer = (withOS) => {
       const v = new Phone3DViewer(document.createElement("div"), p);
@@ -154,6 +207,7 @@ const GLTF_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders
     const hint = document.getElementById("assembleHint");
 
     let w = 0, h = 0;
+    const camBase = { y: -0.4, z: 9 };
     const resize = () => {
       const r = canvas.getBoundingClientRect();
       if (!r.width || !r.height || (r.width === w && r.height === h)) return;
@@ -163,11 +217,13 @@ const GLTF_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders
       // ให้เห็นทั้งสองเครื่องตอนแยก (กว้างราว 2.6 หน่วย) และสูงพอดีจอ
       const t = Math.tan((camera.fov * Math.PI) / 360);
       // เครื่องอยู่ครึ่งบนของจอ เหลือที่ด้านล่างให้ชื่อรุ่น
-      camera.position.set(0, -0.4, Math.max(2.05 / t, 1.7 / (t * camera.aspect)));
+      camBase.y = -0.4; camBase.z = Math.max(2.05 / t, 1.7 / (t * camera.aspect));
+      camera.position.set(0, camBase.y, camBase.z);
       camera.updateProjectionMatrix();
     };
 
-    let target = 0, cur = 0, lastScreen = 0;
+    let target = 0, cur = 0, lastScreen = 0, lastNow = 0;
+    const stage = document.getElementById("assembleStage");
     const readScroll = () => {
       const r = sec.getBoundingClientRect();
       const total = r.height - innerHeight;
@@ -192,9 +248,20 @@ const GLTF_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders
         // ยังไม่ถึงคิวของชิ้นนี้ = ซ่อนไว้ (กันชิ้นส่วนค้างโผล่ตอนเลื่อนกลับขึ้นบนสุด)
         m.visible = (a > 0 && k > 0.001) || P > 0.6;
         if (k > 0.86 && k < 1) docking = Math.max(docking, 1 - (k - 0.86) / 0.14);
+        if (k >= 0.985 && !d.docked && m.visible) { d.docked = true; m.getWorldPosition(tmpV); burst(tmpV, d.rank <= 3 ? 26 : 10); }
+        else if (k < 0.9) d.docked = false;
         void idx;
       });
-      flash.intensity = docking * 2.2;
+      flash.intensity = docking * 2.6;
+      // กล้องโคจรรอบเครื่องและค่อยๆ ถอยออก ระหว่างประกอบ (แบบช็อตโฆษณา)
+      const orbit = (1 - aEase(a)) * 0.95;
+      const dist = camBase.z * (0.78 + 0.22 * aEase(a));
+      camera.position.set(Math.sin(orbit) * dist, camBase.y + (1 - aEase(a)) * 0.9, Math.cos(orbit) * dist);
+      camera.lookAt(0, camBase.y + (1 - aEase(a)) * 0.2, 0);
+      floorGlow.material.opacity = 0.35 + 0.65 * aOut(a) - 0.25 * s;
+      const sw = Math.sin(Math.PI * span(P, 0.62, 0.86));
+      sweep.intensity = 3 * sw; sweep.position.set(-2.4 + 4.8 * span(P, 0.62, 0.86), 0.6, 1.6);
+      stage.style.opacity = String(span(P, 0, 0.06));
       // ตัวเครื่องหมุนระหว่างประกอบ แล้วค่อยๆ หันด้านหลังเข้าหาผู้ชม (มีเครื่องเดียวก่อน)
       const turn = aEase(span(P, 0.56, 0.68));
       const spinA = (1 - aEase(a)) * Math.PI * 2.2;
@@ -232,6 +299,7 @@ const GLTF_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders
       cur += (target - cur) * 0.12;   // ไล่ตามการเลื่อนให้นุ่มนวล
       if (Math.abs(target - cur) < 0.0005) cur = target;
       apply(cur, now);
+      stepSparks(Math.min(0.05, (now - (lastNow || now)) / 1000)); lastNow = now;
       // หน้าจอเครื่องที่สอง (นาฬิกา/หน้าล็อก)
       if (vB && vB.os && B.visible && now - lastScreen > 500) {
         lastScreen = now;

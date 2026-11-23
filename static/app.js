@@ -290,6 +290,20 @@ function renderResults(data) {
   const brandText = !names.length ? "ทุกแบรนด์" : names.length > 4 ? `${names.slice(0, 4).join(", ")} และอีก ${names.length - 4} แบรนด์` : names.join(", ");
   $("#resultSummary").textContent = `พบ ${data.count} รุ่นที่มีข้อมูลสเปก · ${brandText}` +
     (data.noSpecCount && !state.category ? ` · อีก ${fmt(data.noSpecCount)} รุ่นยังไม่มีสเปก (ดูได้ในรายชื่อทุกรุ่นด้านล่าง)` : "");
+  // งบแคบจนแทบไม่มีรุ่น: ระบบขยายช่วงราคาให้อัตโนมัติ → บอกผู้ใช้ให้ชัด
+  let note = $("#budgetNote");
+  if (!note) {
+    note = document.createElement("p");
+    note.id = "budgetNote"; note.className = "budget-note";
+    $("#resultSummary").after(note);
+  }
+  const wd = data.widened;
+  note.hidden = !wd;
+  if (wd) {
+    const range = wd.min != null && wd.max != null ? `${fmt(wd.min)}–${fmt(wd.max)} บาท`
+      : wd.max != null ? `ไม่เกิน ${fmt(wd.max)} บาท` : `ตั้งแต่ ${fmt(wd.min)} บาทขึ้นไป`;
+    note.innerHTML = `${icon("info")}<span>มีรุ่นในงบที่ใส่ไม่มาก เลยแสดง<b>รุ่นราคาใกล้เคียง</b> (${range}) ที่ยังตรงกับแบรนด์และการใช้งานที่เลือกด้วย</span>`;
+  }
   renderActiveCategory();
   syncPriceChips();
   const remaining = data.results.length - state.shown;
@@ -312,6 +326,7 @@ function renderResults(data) {
     const badges = [
       p.bestValue ? `<span class="badge gold">คุ้มค่าที่สุด</span>` : "",
       p.topPerf ? `<span class="badge">สเปกดีที่สุดในผลลัพธ์</span>` : "",
+      p.nearBudget ? `<span class="badge near">ราคาใกล้เคียงงบ</span>` : "",
     ].join("");
     lastResults[p.id] = p;
     return `

@@ -731,3 +731,32 @@ footer p { max-width: 640px; margin: 4px auto; }
 }
 @keyframes assemble-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
 @media (max-width: 640px) { .assemble { height: 300vh; } }
+
+/* งบแคบ: แจ้งว่าแสดงรุ่นราคาใกล้เคียง */
+.budget-note {
+  display: flex; align-items: flex-start; gap: 8px; margin: 10px 0 0; padding: 10px 14px; border-radius: 14px;
+  background: var(--accent-soft); color: var(--text); font-size: 14px; line-height: 1.5;
+}
+.budget-note[hidden] { display: none; }
+.budget-note .ico { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--accent); }
+.budget-note b { color: var(--accent); font-weight: 600; }
+.badge.near { background: color-mix(in srgb, #ff9f0a 16%, transparent); color: #c76a00; }
+:root[data-theme="dark"] .badge.near { color: #ffb340; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge.near { color: #ffb340; } }
+
+/* เวทีมืดแบบภาพโฆษณา: ค่อยๆ ปรากฏเมื่อเลื่อนเข้ามา (ไม่ขึ้นกับธีมกลางวัน/กลางคืน) */
+.assemble-stage {
+  position: absolute; inset: 0; opacity: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 55% at 50% 38%, rgba(120,140,190,.22), transparent 70%),
+    radial-gradient(ellipse 85% 75% at 50% 45%, #2c2d33 0%, #141418 55%, #050507 100%);
+}
+.assemble-stage::after {   /* แสงสปอตจากด้านบน */
+  content: ""; position: absolute; left: 50%; top: -10%; width: min(70vw, 760px); height: 70%;
+  transform: translateX(-50%); background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.12), transparent 65%);
+}
+.assemble-name { color: #fff; text-shadow: 0 0 40px rgba(140,170,255,.35); }
+.assemble-spec { color: #b8b8be; }
+.assemble-eyebrow { color: #8fb6ff; }
+.assemble .assemble-cta { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.25); backdrop-filter: blur(10px); }
+.assemble .assemble-cta:hover { background: rgba(255,255,255,.18); }
