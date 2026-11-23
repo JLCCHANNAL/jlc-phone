@@ -10,7 +10,33 @@ const COLLADA_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/load
 
 // รุ่นที่มีโมเดล 3D จริง (ไฟล์อยู่ใน static/models/)
 // rotation = หมุนให้หน้าจอหันเข้าหากล้อง | baseColor = ชื่อสีของพื้นผิวต้นฉบับ | credit = ต้องแสดงตามสัญญาอนุญาต CC BY
+const GLTF_LOADER_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js";
 const REAL_MODELS = {
+  // โมเดล GLB จาก Sketchfab (ปรับขนาด/ทิศ/ด้านจอให้อัตโนมัติ) — files = ไฟล์แยกตามสีจริง, ไม่มี files = ไฟล์เดียวแล้วย้อมสีตัวเครื่อง
+  "apple-apple-iphone-18-pro-max": {
+    type: "glb", baseColor: "Burgundy",
+    file: "models/iphone-18-pro-max/model.glb",
+    // สีอื่นใช้โมเดลเดียวกัน เปลี่ยนแค่วัสดุ (ไฟล์ละ ~0.2 MB แทนโมเดลเต็ม ~3.9 MB)
+    materialPacks: { Black: "models/iphone-18-pro-max/black-materials.glb", Silver: "models/iphone-18-pro-max/silver-materials.glb",
+                     Glacier: "models/iphone-18-pro-max/glacier-materials.glb" },
+    credit: { title: "Apple iPhone 18 Pro Max 2026", author: "extraakash", url: "https://sketchfab.com/AakashMansukhani",
+              license: "Sketchfab Standard", licenseUrl: "https://sketchfab.com/licenses" },
+  },
+  "iphone-17-pro-max": {
+    type: "glb", pending: true,   // pending = ไฟล์โมเดลยังไม่ได้อัปโหลดขึ้นเว็บ ใช้โมเดลจำลองไปก่อน file: "models/iphone-17-pro-max/model.glb",
+    credit: { title: "iPhone 17 Pro Max", author: "MajdyModels", url: "https://sketchfab.com/MG990",
+              license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/" },
+  },
+  "iphone-17-pro": {
+    type: "glb", pending: true, file: "models/iphone-17-pro/model.glb",
+    credit: { title: "Iphone 17 pro", author: "Ibrahim.Bhl", url: "https://sketchfab.com/Ibrahim.Bhl",
+              license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/" },
+  },
+  "s25-ultra": {
+    type: "glb", pending: true, file: "models/galaxy-s25-ultra/model.glb",
+    credit: { title: "Samsung Galaxy S25 Ultra", author: "vmmaniac", url: "https://sketchfab.com/vmmaniac",
+              license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0/" },
+  },
   "apple-apple-iphone-14-pro": {
     dir: "models/iphone-14-pro/", file: "model.dae", rotation: [0, Math.PI, 0], baseColor: "Space Black",
     credit: {
@@ -229,11 +255,18 @@ class Phone3DViewer {
     if (this.disposed) return;
     this.raycaster = new T.Raycaster();
 
-    const real = REAL_MODELS[this.phone.id];
+    const real = REAL_MODELS[this.phone.id] && !REAL_MODELS[this.phone.id].pending ? REAL_MODELS[this.phone.id] : null;
     this.group = null;
     if (real) {
       try {
-        this.group = await this.buildRealModel(real);
+        if (real.type === "glb") {
+          const base = real.baseColor && (this.phone.colors || []).some((c) => c.name === real.baseColor) ? real.baseColor : null;
+          this.group = await this.buildGLBModel(real.file);
+          if (!real.materialPacks) this.tintGLB(this.colorHex, true);
+          this.preloadGLBColors();
+        } else {
+          this.group = await this.buildRealModel(real);
+        }
         this.credit = real.credit;
         this.real = real;
         if (real.baseColor && (this.phone.colors || []).some((c) => c.name === real.baseColor)) {
@@ -766,6 +799,16 @@ class Phone3DViewer {
     group.updateMatrixWorld(true);
     const box = new T.Box3().setFromObject(group);
     const size = box.getSize(new T.Vector3()), center = box.getCenter(new T.Vector3());
+    if (group.userData.screenBox) {
+      // โมเดล GLB: ใช้ขนาด/ตำแหน่งจอจริงที่วัดได้ตอนโหลด
+      const sb = group.userData.screenBox;
+      const m = new T.Mesh(roundedPlane(T, sb.w * 0.985, sb.h * 0.99, Math.min(sb.w, sb.h) * 0.13),
+        new T.MeshPhysicalMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: this.screenTex || this.osTexture(), emissiveIntensity: 0.95, roughness: 0.06, clearcoat: 1, clearcoatRoughness: 0.02 }));
+      m.position.set(sb.cx, sb.cy, sb.z + 0.003);
+      group.add(m);
+      this.screenMesh = m;
+      return;
+    }
     const fit = this.real.screen || { w: 0.905, h: 0.955, r: 0.115, dy: 0 };
     const map = this.osTexture();
     const m = new T.Mesh(roundedPlane(T, size.x * fit.w, size.y * fit.h, fit.r),
@@ -785,6 +828,170 @@ class Phone3DViewer {
     const ndc = new this.T.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
     this.raycaster.setFromCamera(ndc, this.camera);
     return this.raycaster.intersectObjects(list, false)[0] || null;
+  }
+
+  // ---------- โมเดลจริง (.glb จาก Sketchfab) ----------
+  // จัดทรงอัตโนมัติ: แกนยาวสุด = ความสูง (y), แกนบางสุด = ความหนา (z), หน้าจอหันหาผู้ชม, กล้องหลังอยู่ด้านบน, สูง 2 หน่วย
+  async buildGLBModel(url) {
+    const T = this.T;
+    this.glbCache = this.glbCache || {};
+    if (!this.glbCache[url]) {
+      await loadScript(GLTF_LOADER_URL);
+      this.glbCache[url] = new Promise((res, rej) => new T.GLTFLoader().load(url, (g) => { g.scene.userData.matNames = (g.parser.json.materials || []).map((m) => m.name); res(g.scene); }, undefined, rej));
+    }
+    const src = await this.glbCache[url];
+    const inner = src.clone(true);
+    ["Back_Flash_Ref", "Gradient"].forEach((n) => { const o = inner.getObjectByName(n); if (o && o.parent) o.parent.remove(o); });
+    inner.traverse((o) => {
+      if (o.isMesh && o.material) {
+        o.material = o.material.clone();
+        o.material.userData.wasTransparent = o.material.transparent;
+        o.material.envMapIntensity = 1.05;
+        if (o.material.map) o.material.map.anisotropy = 8;
+      }
+    });
+    const orient = new T.Group(); orient.add(inner);
+    const box = () => { orient.updateMatrixWorld(true); return new T.Box3().setFromObject(inner); };
+    // ลองหมุนทีละ 90° หาท่าที่สูงที่สุดในแกน y และบางที่สุดในแกน z
+    let best = null;
+    for (let rx = 0; rx < 4; rx++) for (let ry = 0; ry < 4; ry++) for (const rz of [0, 1]) {
+      orient.rotation.set((rx * Math.PI) / 2, (ry * Math.PI) / 2, (rz * Math.PI) / 2);
+      const s = box().getSize(new T.Vector3());
+      const score = s.y / Math.max(s.x, 1e-6) - (s.z / Math.max(s.x, 1e-6)) * 3;
+      if (!best || score > best.score + 1e-6) best = { score, rx, ry, rz };
+    }
+    orient.rotation.set((best.rx * Math.PI) / 2, (best.ry * Math.PI) / 2, (best.rz * Math.PI) / 2);
+    const nameOf = (o) => `${o.name} ${(o.material && o.material.name) || ""}`;
+    const findMeshes = (re, not) => { const out = []; inner.traverse((o) => { if (o.isMesh && re.test(nameOf(o)) && !(not && not.test(nameOf(o)))) out.push(o); }); return out; };
+    const boxOf = (list) => { const b = new T.Box3(); list.forEach((o) => b.expandByObject(o)); return b; };
+    // ด้านจอ: ใช้กล้องหลังเป็นหลัก (เลนส์นูนอยู่ด้านหลังเสมอ) ถ้าไม่มีค่อยดูจากชิ้นจอ
+    const screens = findMeshes(/screen|display/i, /rim|bezel|frame/i);
+    const cams = findMeshes(/cam|lens/i, /front/i);
+    let mid = box().getCenter(new T.Vector3());
+    const backByCam = cams.length ? boxOf(cams).getCenter(new T.Vector3()).z > mid.z : null;
+    const backByScreen = screens.length ? boxOf(screens).getCenter(new T.Vector3()).z < mid.z : null;
+    if (backByCam === true || (backByCam === null && backByScreen)) orient.rotation.y += Math.PI;
+    // กล้องหลังต้องอยู่ด้านบน
+    mid = box().getCenter(new T.Vector3());
+    if (cams.length && boxOf(cams).getCenter(new T.Vector3()).y < mid.y) orient.rotation.z += Math.PI;
+    const full = box();
+    const size = full.getSize(new T.Vector3()), center = full.getCenter(new T.Vector3());
+    const scale = 2 / size.y;
+    const holder = new T.Group();
+    holder.add(orient);
+    holder.scale.setScalar(scale);
+    holder.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
+    const group = new T.Group();
+    group.add(holder);
+    group.userData.matNames = src.userData.matNames || [];
+    group.updateMatrixWorld(true);
+    // จอจริงของโมเดล (ใช้วางหน้าจอจำลองที่แตะ/ปัดได้): ชิ้นจอที่ใหญ่ที่สุด
+    if (screens.length) {
+      const area = (o) => { const s = new T.Box3().setFromObject(o).getSize(new T.Vector3()); return s.x * s.y; };
+      const big = screens.reduce((a, b) => (area(a) >= area(b) ? a : b));
+      const scr = new T.Box3().setFromObject(big);
+      const s2 = scr.getSize(new T.Vector3()), c2 = scr.getCenter(new T.Vector3());
+      group.userData.screenBox = { w: s2.x, h: s2.y, cx: c2.x, cy: c2.y, z: scr.max.z };
+    }
+    // วัสดุตัวเครื่องที่ย้อมสีได้ (กรณีไฟล์เดียว)
+    group.userData.bodyMats = [];
+    inner.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      const n = nameOf(o);
+      if (/back|body|frame|rear|basecolor|colou?r|cherry|side|aniso|metal/i.test(n) &&
+          !/glass|screen|lens|cam|usb|grill|screw|black|logo|flash|bezel|display|speaker|sensor|hole|pin/i.test(n)) {
+        if (!group.userData.bodyMats.includes(o.material)) group.userData.bodyMats.push(o.material);
+        return;
+      }
+      // ชิ้นใหญ่ที่เป็นสีสด (สีประจำรุ่น เช่น ฝาหลังสีส้ม) ก็นับเป็นตัวเครื่องด้วย
+      if (o.material.map || /glass|screen|lens|logo|flash|display/i.test(n)) return;
+      const hsl = o.material.color.getHSL({});
+      const s3 = new T.Box3().setFromObject(o).getSize(new T.Vector3());
+      if (hsl.s > 0.35 && hsl.l > 0.08 && hsl.l < 0.85 && s3.x * s3.y > 0.25 && !group.userData.bodyMats.includes(o.material)) {
+        group.userData.bodyMats.push(o.material);
+      }
+    });
+    // ไม่เจอชิ้นตัวเครื่องจากชื่อ: ใช้ชิ้นใหญ่ที่สุดที่ไม่ใช่จอ/กระจก/เลนส์ (ย้อมแบบตัดลายพื้นผิวเดิมออก)
+    if (!group.userData.bodyMats.length) {
+      const cand = [];
+      inner.traverse((o) => {
+        if (!o.isMesh || !o.material || /glass|screen|lens|cam|logo|flash|display|black|usb|grill|screw|bg/i.test(nameOf(o))) return;
+        const s4 = new T.Box3().setFromObject(o).getSize(new T.Vector3());
+        cand.push({ m: o.material, a: s4.x * s4.y });
+      });
+      cand.sort((x, y) => y.a - x.a);
+      cand.filter((c) => c.a >= cand[0].a * 0.2).forEach((c) => { if (!group.userData.bodyMats.includes(c.m)) { c.m.userData.dropMap = true; group.userData.bodyMats.push(c.m); } });
+    }
+    return group;
+  }
+
+  // ย้อมสีตัวเครื่องของโมเดลไฟล์เดียว (คงแสงเงา/พื้นผิวเดิม เปลี่ยนแค่โทนสี)
+  tintGLB(hex, instant) {
+    const mats = (this.group && this.group.userData.bodyMats) || [];
+    if (!mats.length) return null;
+    const to = this.lin(hex);
+    mats.forEach((m) => { if (m.userData.dropMap && m.map) { m.map = null; m.needsUpdate = true; } });
+    const parts = mats.map((m) => ({ mat: m, from: m.color.clone(), to }));
+    if (instant) parts.forEach((p) => p.mat.color.copy(p.to));
+    return parts;
+  }
+
+  // โหลดชุดวัสดุของสีหนึ่ง (ไฟล์ .glb ที่มีแต่วัสดุ/พื้นผิว) → รายการวัสดุ three.js เรียงตามลำดับเดิม
+  loadMaterialPack(url) {
+    this.packCache = this.packCache || {};
+    if (!this.packCache[url]) {
+      this.packCache[url] = loadScript(GLTF_LOADER_URL).then(() => new Promise((res, rej) =>
+        new this.T.GLTFLoader().load(url, (g) => g.parser.getDependencies("material").then(res, rej), undefined, rej)));
+      this.packCache[url].catch(() => { delete this.packCache[url]; });
+    }
+    return this.packCache[url];
+  }
+
+  applyMaterialPack(group, mats) {
+    const names = group.userData.matNames || [];
+    group.traverse((o) => {
+      if (!o.isMesh || !o.material) return;
+      const i = names.indexOf(o.material.name);
+      if (i < 0 || !mats[i]) return;
+      const m = mats[i].clone();
+      m.envMapIntensity = 1.05;
+      m.userData.wasTransparent = m.transparent;
+      o.material = m;
+    });
+  }
+
+  // สลับไปโมเดลสีอื่น (iPhone 18 Pro Max มีไฟล์แยกทุกสี): เครื่องเดิมจางหายพร้อมหมุนเล็กน้อย เครื่องใหม่ค่อยๆ ชัดขึ้น
+  async swapGLB(name) {
+    const packs = this.real.materialPacks || {};
+    const token = (this.swapToken = (this.swapToken || 0) + 1);
+    this.container.classList.add("swapping");
+    let next;
+    try {
+      next = await this.buildGLBModel(this.real.file);
+      if (packs[name]) this.applyMaterialPack(next, await this.loadMaterialPack(packs[name]));   // สีหลักของไฟล์ = ไม่ต้องใส่ชุดวัสดุ
+    } catch (e) { this.container.classList.remove("swapping"); return; }
+    if (this.disposed || token !== this.swapToken) return;
+    this.container.classList.remove("swapping");
+    if (this.tween && this.tween.swap) { this.scene.remove(this.tween.swap.old); this.tween = null; }
+    const old = this.group;
+    next.rotation.copy(old.rotation);
+    next.position.copy(old.position);
+    const fade = (g, v) => g.traverse((o) => { if (o.isMesh && o.material) { o.material.transparent = true; o.material.opacity = v; o.material.depthWrite = v > 0.98; } });
+    fade(next, 0);
+    this.scene.add(next);
+    // ย้ายหน้าจอจำลองไปเครื่องใหม่
+    if (this.screenMesh && this.screenMesh.parent === old) old.remove(this.screenMesh);
+    this.group = next;
+    if (this.os) this.addScreenOverlay(next);
+    this.tween = { t0: performance.now(), swap: { old, next, fade, oldRotY: old.rotation.y } };
+  }
+
+  // โหลดไฟล์สีอื่นล่วงหน้า (ตอนเครื่องว่าง) ให้กดเปลี่ยนสีแล้วสลับได้ทันที
+  preloadGLBColors() {
+    if (!this.real || !this.real.materialPacks) return;
+    const urls = Object.values(this.real.materialPacks);
+    const go = () => urls.forEach((u, i) => setTimeout(() => { if (!this.disposed) this.loadMaterialPack(u); }, 500 * i));
+    (window.requestIdleCallback || ((f) => setTimeout(f, 1200)))(go);
   }
 
   // ---------- โมเดลจริง (.dae) ----------
@@ -890,6 +1097,11 @@ class Phone3DViewer {
     this.colorHex = hex; this.colorName = name;
     if (this.os) this.os.setAccent(hex);   // วอลเปเปอร์เปลี่ยนตามสีเครื่อง (แบบที่ผู้ผลิตทำ)
     const now = performance.now();
+    if (this.real && this.real.type === "glb") {
+      if (this.real.materialPacks) { this.swapGLB(name); return; }
+      this.tween = { t0: now, parts: this.tintGLB(hex) || [] };
+      return;
+    }
     if (this.real && this.realMat) {
       const isBase = name === this.real.baseColor;
       const tex = isBase ? this.realMat.userData.baseMap || this.realMat.map : this.recoloredTexture(hex);
@@ -919,14 +1131,27 @@ class Phone3DViewer {
     if (!tw) return;
     const t = Math.min(1, (now - tw.t0) / COLOR_ANIM_MS);
     const e = easeInOut(t);
+    if (tw.swap) {
+      const { old, next, fade } = tw.swap;
+      fade(old, 1 - e); fade(next, e);
+      old.rotation.x = next.rotation.x;
+      old.rotation.y = next.rotation.y - 0.45 * e;
+      old.scale.setScalar(1 - 0.08 * e);
+      next.scale.setScalar(0.94 + 0.06 * e);
+    }
     if (tw.real) this.mixUniforms.uMix.value = e;
-    else tw.parts.forEach((p) => p.mat.color.copy(p.from).lerp(p.to, e));
+    else if (tw.parts) tw.parts.forEach((p) => p.mat.color.copy(p.from).lerp(p.to, e));
     // แสงกวาดจากซ้ายไปขวาด้านที่หันหาผู้ชม + ตัวเครื่องขยายขึ้นเล็กน้อยแล้วกลับ
     const bell = Math.sin(Math.PI * t);
     this.sweep.intensity = 2.2 * bell;
     this.sweep.position.set(-2 + 4 * e, 0.6 - 0.8 * e, 1.6);
-    this.group.scale.setScalar(1 + 0.03 * bell);
+    if (!tw.swap) this.group.scale.setScalar(1 + 0.03 * bell);
     if (t >= 1) {
+      if (tw.swap) {
+        this.scene.remove(tw.swap.old);
+        tw.swap.fade(tw.swap.next, 1);
+        tw.swap.next.traverse((o) => { if (o.isMesh && o.material) { o.material.transparent = !!o.material.userData.wasTransparent; o.material.depthWrite = true; } });
+      }
       if (tw.real) { this.realMat.map = tw.tex; this.mixUniforms.uMix.value = 0; }
       this.sweep.intensity = 0;
       this.group.scale.setScalar(1);

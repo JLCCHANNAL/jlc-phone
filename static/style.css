@@ -760,3 +760,19 @@ footer p { max-width: 640px; margin: 4px auto; }
 .assemble-eyebrow { color: #8fb6ff; }
 .assemble .assemble-cta { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.25); backdrop-filter: blur(10px); }
 .assemble .assemble-cta:hover { background: rgba(255,255,255,.18); }
+
+/* โมเดล 3D: แสงวิบวับระหว่างโหลด + วงแหวนเล็กตอนกำลังสลับสีเครื่อง */
+.viewer3d::after {
+  content: ""; position: absolute; inset: 8% 18%; border-radius: 28px; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%) -150% 0 / 250% 100% no-repeat;
+  animation: viewer-shimmer 1.6s ease-in-out infinite; opacity: 1; transition: opacity .5s;
+}
+.viewer3d.ready::after { opacity: 0; animation: none; }
+.viewer3d.ready canvas { animation: viewer-in .7s cubic-bezier(.2,.8,.2,1); }
+@keyframes viewer-shimmer { to { background-position: 150% 0; } }
+@keyframes viewer-in { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: none; } }
+.viewer3d.swapping::before {
+  content: ""; position: absolute; right: 14px; top: 14px; width: 18px; height: 18px; border-radius: 50%; z-index: 2;
+  border: 2px solid var(--line); border-top-color: var(--accent); animation: viewer-spin .8s linear infinite;
+}
+@keyframes viewer-spin { to { transform: rotate(360deg); } }
