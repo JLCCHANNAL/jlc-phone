@@ -189,7 +189,8 @@ const GLTF_URL = "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders
         m.rotation.set(d.r.x + d.spin.x * inv, d.r.y + d.spin.y * inv, d.r.z + d.spin.z * inv);
         // ชิ้นเล็กลอยมาแบบขยายใหญ่ แล้วหดลงเข้าที่ (ให้เห็นชัดแบบชุดเกราะประกอบตัว)
         m.scale.setScalar(d.sc * (d.rank > 3 ? 1 + 2.2 * inv : 1));
-        m.visible = a > startAt - 0.02 || P > 0.6;
+        // ยังไม่ถึงคิวของชิ้นนี้ = ซ่อนไว้ (กันชิ้นส่วนค้างโผล่ตอนเลื่อนกลับขึ้นบนสุด)
+        m.visible = (a > 0 && k > 0.001) || P > 0.6;
         if (k > 0.86 && k < 1) docking = Math.max(docking, 1 - (k - 0.86) / 0.14);
         void idx;
       });
