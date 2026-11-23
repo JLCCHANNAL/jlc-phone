@@ -284,6 +284,31 @@ def criterion_score(phone, key):
     return phone["scores"][key]
 
 
+MIN_BUDGET_RESULTS = 6
+
+
+def widen_budget(pool, min_price, max_price):
+    """งบแคบเกินจนแทบไม่มีรุ่น (เช่น 20,000–20,000): ขยายช่วงราคาออกทีละขั้นรอบงบที่ใส่
+    จนได้อย่างน้อย 6 รุ่น (ขยายได้สูงสุด ±50% ของงบ) คืนค่า (ต่ำสุด, สูงสุด, ข้อมูลการขยาย หรือ None)"""
+    has_min, has_max = min_price > 0, max_price < 10**9
+    count = lambda lo, hi: sum(1 for p in pool if lo <= p["price"] <= hi)
+    if not (has_min or has_max) or count(min_price, max_price) >= MIN_BUDGET_RESULTS:
+        return min_price, max_price, None
+    center = (min_price + max_price) / 2 if has_min and has_max else (max_price if has_max else min_price)
+    tol = max(1000.0, center * 0.05)
+    lo, hi = min_price, max_price
+    while tol <= center * 0.5:
+        # งบมีแค่ "สูงสุด" → ขยายขึ้นด้านเดียว / มีแค่ "ต่ำสุด" → ขยายลงด้านเดียว / มีทั้งคู่ → ขยายสองด้าน
+        lo = max(0.0, min_price - tol) if has_min else 0.0
+        hi = max_price + tol if has_max else 10**9
+        if count(lo, hi) >= MIN_BUDGET_RESULTS:
+            break
+        tol *= 1.5
+    if count(lo, hi) == count(min_price, max_price):
+        return min_price, max_price, None
+    return lo, hi, {"min": round(lo) if has_min else None, "max": round(hi) if has_max else None}
+
+
 def recommend(body):
     brands = set(body.get("brands") or [])
     min_price = float(body.get("minPrice") or 0)
@@ -299,13 +324,14 @@ def recommend(body):
     if not weights:
         weights = dict(PRESETS[2]["weights"])  # ค่าเริ่มต้น: ใช้งานทั่วไป
 
+    # รุ่นที่ตรงแบรนด์/หมวดที่เลือก (ยังไม่ดูราคา)
+    pool = [p for p in PHONES
+            if (not brands or p["brandSlug"] in brands) and match_tag(p, body.get("tag"))]
+    lo, hi, widened = widen_budget(pool, min_price, max_price)
+
     results = []
-    for p in PHONES:
-        if brands and p["brandSlug"] not in brands:
-            continue
-        if not (min_price <= p["price"] <= max_price):
-            continue
-        if not match_tag(p, body.get("tag")):
+    for p in pool:
+        if not (lo <= p["price"] <= hi):
             continue
         breakdown = {k: round(criterion_score(p, k)) for k in weights}
         perf = sum(breakdown[k] * w for k, w in weights.items()) / sum(weights.values())
@@ -316,7 +342,8 @@ def recommend(body):
         starred = [k for k, w in weights.items() if w >= 2] or list(weights)
         focus = sum(breakdown[k] for k in starred) / len(starred)
         raw_value = max(0.0, perf - VALUE_BASE) ** 2 * max(0.0, focus - VALUE_BASE) / p["price"]
-        results.append({**p, "breakdown": breakdown, "perf": round(perf, 1), "_raw": raw_value})
+        results.append({**p, "breakdown": breakdown, "perf": round(perf, 1), "_raw": raw_value,
+                        "nearBudget": not (min_price <= p["price"] <= max_price)})
 
     if results:
         best_raw = max(r["_raw"] for r in results) or 1
@@ -350,7 +377,7 @@ def recommend(body):
 
     in_brands = [i for i in CATALOG if not brands or i["b"] in brands]
     no_spec = sum(1 for i in in_brands if "phoneId" not in i)
-    return {"count": len(results), "weights": weights, "results": results, "noSpecCount": no_spec}
+    return {"count": len(results), "weights": weights, "results": results, "noSpecCount": no_spec, "widened": widened}
 
 
 def search_catalog(params):
