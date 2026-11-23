@@ -375,8 +375,9 @@ class Handler(SimpleHTTPRequestHandler):
         ".css": "text/css",
         ".html": "text/html; charset=utf-8",
         ".dae": "model/vnd.collada+xml",
+        ".glb": "model/gltf-binary",
     }
-    GZIP_TYPES = (".dae", ".js", ".css", ".json", ".html", ".svg")
+    GZIP_TYPES = (".dae", ".js", ".css", ".json", ".html", ".svg", ".glb")
     _gzip_cache = {}
 
     def try_send_gzip(self, url_path):
