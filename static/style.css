@@ -648,3 +648,62 @@ footer p { max-width: 640px; margin: 4px auto; }
 @media (min-width: 1400px) {
   .step > *, .results > * { max-width: 1120px; }
 }
+
+/* ---------- ส่วนเปิดตัวรุ่นใหม่: เลื่อนจอแล้วมือถือลอยขึ้นมา ---------- */
+.launch { position: relative; height: 320vh; }
+.launch[hidden] { display: none; }
+.launch-sticky {
+  position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
+  display: grid; grid-template-rows: auto 1fr auto; justify-items: center; padding: 72px 16px 28px;
+}
+.launch-head { text-align: center; will-change: transform, opacity; }
+.launch-eyebrow { margin: 0 0 12px; color: var(--accent); font-weight: 600; font-size: 15px; letter-spacing: .02em; }
+.launch-title { margin: 0; font-size: clamp(30px, 5.4vw, 56px); letter-spacing: -0.025em; line-height: 1.08; }
+.launch-stage { position: relative; width: 100%; max-width: 980px; perspective: 1400px; }
+.launch-glow {
+  position: absolute; left: 50%; top: 52%; width: min(70vw, 620px); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 38%, transparent) 0%, transparent 62%);
+  filter: blur(10px); opacity: 0; transform: translate(-50%, -50%); pointer-events: none;
+}
+.launch-phone {
+  position: absolute; left: 50%; top: 4%; height: 88%; aspect-ratio: 1 / 2;
+  padding: 0; border: 0; background: none; cursor: pointer; transform-origin: 50% 100%;
+  will-change: transform, opacity; opacity: 0; transform: translate(-50%, 70vh);
+  -webkit-tap-highlight-color: transparent;
+}
+.launch-phone.main { z-index: 2; }
+.launch-phone.left, .launch-phone.right { z-index: 1; height: 80%; filter: saturate(.95); }
+.launch-svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 30px 40px rgba(0,0,0,.28)); }
+.launch-phone:focus-visible { outline: none; }
+.launch-phone:focus-visible .launch-svg { filter: drop-shadow(0 0 0 2px var(--accent)) drop-shadow(0 30px 40px rgba(0,0,0,.28)); }
+.launch-shadow {
+  position: absolute; left: 10%; right: 10%; bottom: -5%; height: 6%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0,0,0,.28), transparent); pointer-events: none;
+}
+.launch-info { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; width: 100%; max-width: 980px; }
+.launch-card {
+  text-align: center; opacity: 0; will-change: transform, opacity;
+  display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted);
+}
+.launch-card strong { color: var(--text); font-size: 16px; }
+.launch-card b { color: var(--text); font-size: 15px; font-weight: 600; }
+.launch-card.left { order: 1; } .launch-card.main { order: 2; } .launch-card.right { order: 3; }
+.launch-card.main strong { font-size: 18px; }
+@media (max-width: 640px) {
+  .launch { height: 280vh; }
+  .launch-sticky { padding-top: 64px; }
+  .launch-phone { height: 66%; top: 10%; }
+  .launch-phone.left, .launch-phone.right { height: 54%; }
+  .launch-info { gap: 6px; }
+  .launch-card { font-size: 11px; }
+  .launch-card span { display: none; }
+  .launch-card strong { font-size: 13px; }
+  .launch-card.main strong { font-size: 14px; }
+}
+.launch.static { height: auto; }
+.launch.static .launch-sticky { position: relative; height: min(100vh, 820px); }
+
+/* ---------- เนื้อหาค่อยๆ ลอยขึ้นเมื่อเลื่อนมาถึง ---------- */
+.rv { opacity: 0; transform: translateY(28px) scale(.985); transition: opacity .75s cubic-bezier(.2,.8,.2,1), transform .75s cubic-bezier(.2,.8,.2,1); transition-delay: var(--rv-d, 0ms); }
+.rv.in { opacity: 1; transform: none; }
+.rv.soft { transform: none; transition: opacity .6s ease; }
